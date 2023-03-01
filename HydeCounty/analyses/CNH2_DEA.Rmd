@@ -1,0 +1,453 @@
+---
+title: "CNH2_DEA"
+author: "CF"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Clear environment:
+rm(list=ls())
+
+# Set working directory:
+setwd("~/GitHub/CNH2/analyses")
+
+# Use to set root directory for knitr
+knitr::opts_knit$set(root.dir="~/GitHub/CNH2/analyses")
+```
+
+```{r code dependencies}
+require("ggplot2"):require("tidyr"):require("ggpubr")
+```
+
+
+```{r import data}
+# Read in denitrification rate calculations from Hyde County DEA, 20221208 sampling:
+denit_rates <- read.csv("~/GitHub/CNH2/data/denit_rates_HydeCo_20221208.csv")
+
+# Read in denitrification rate calculation with CORRECTED rates for morning samples:
+denit_CORRECTED <- read.csv("~/GitHub/CNH2/data/CORRECTED_denit_rates_HydeCo_20221208.csv")
+```
+
+```{r plotting}
+# Set levels of Salt to make plotting easier:
+denit_rates$Salt <- factor(denit_rates$Salt, levels = c("low", "medium", "high", "combined"))
+
+plot.denit_rates <- ggplot(denit_rates, aes(x=Salt, y=Denitrification_rate)) +
+                     geom_boxplot(aes(color=Salt), outlier.shape = NA) +
+                     geom_point(aes(color=Salt), size = 1.5, position = position_jitterdodge()) +
+  scale_color_manual(values=c("gray85","gray44","gray4", "burlywood2"), name="Salinity")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
+          axis.text=element_text(size=14),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="none", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "Salinity", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  
+ 
+plot.denit_rates
+```
+
+```{r remove NO_ACET}
+denit_ACET <- dplyr::filter(denit_rates, denit_rates$Acetylene == "ACET", .preserve = TRUE)
+
+denit_corrected_ACET <- dplyr::filter(denit_CORRECTED, denit_CORRECTED$Acetylene == "ACET", .preserve = TRUE)
+```
+
+```{r plot ACET}
+plot.denit_ACET <- ggplot(denit_ACET, aes(x=Salt, y=Denitrification_rate)) +
+                     geom_boxplot(aes(color=Salt), outlier.shape = NA) +
+                     geom_point(aes(color=Salt), size = 1.5, position = position_jitterdodge()) +
+  scale_color_manual(values=c("gray85","gray44","gray4", "burlywood2"), labels = c("low", "medium", "high", "combined"), name="Salinity")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
+          axis.text=element_text(size=14),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="none", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "Salinity", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  
+ 
+plot.denit_ACET
+
+#ggsave("../figures/denit_v_salt_AcetOnly.tiff", plot=plot.denit_ACET, device="tiff", path=NULL, scale=1, width=10, height=7, dpi=600, limitsize=TRUE, bg="white")
+
+#ggsave("../figures/denit_v_salt_AcetOnly.png", plot=plot.denit_ACET, device="png", path=NULL, scale=1, width=10, height=7, dpi=600, limitsize=TRUE, bg="white")
+```
+
+```{r plot buffer vs field}
+plot.buff_v_fied_ACET <- ggplot(denit_ACET, aes(x=Field_or_Buffer, y=Denitrification_rate)) +
+                     geom_boxplot(aes(color=Field_or_Buffer), outlier.shape = NA) +
+                     geom_point(aes(color=Field_or_Buffer), size = 1.5, position = position_jitterdodge()) +
+  scale_color_manual(values=c("brown","forestgreen"), labels = c("buffer", "field"), name="Land Use")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
+          axis.text=element_text(size=14),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="none", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "Land Use", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  
+ 
+plot.buff_v_fied_ACET
+
+#ggsave("../figures/buff_v_field_AcetOnly.tiff", plot=plot.buff_v_fied_ACET, device="tiff", path=NULL, scale=1, width=10, height=7, dpi=600, limitsize=TRUE, bg="white")
+
+#ggsave("../figures/buff_v_field_AcetOnly.png", plot=plot.buff_v_fied_ACET, device="png", path=NULL, scale=1, width=10, height=7, dpi=600, limitsize=TRUE, bg="white")
+```
+
+```{r Sites and Salinity plot}
+plot.sites_salt_use <- ggplot(denit_ACET, aes(x=Field_location, y=Denitrification_rate)) +
+                     geom_boxplot(outlier.shape = NA) +
+                     geom_point(aes(color=Salt, fill=Salt, shape = Field_or_Buffer), size = 1.5, position = position_jitterdodge()) +
+  scale_color_manual(values=c("gray85","gray44","gray4", "burlywood2"), labels = c("low", "medium", "high", "combined"), name="Salinity")+
+  scale_fill_manual(values=c("gray85","gray44","gray4", "burlywood2"), labels = c("low", "medium", "high", "combined"), name="Salinity")+
+  scale_shape_manual(values = c(21, 24), name="Land Use")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
+          axis.text=element_text(size=14),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="right", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "Site", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  
+ 
+plot.sites_salt_use
+
+#ggsave("../figures/site_salt_use.png", plot=plot.sites_salt_use, device="png", path=NULL, scale=1, width=10, height=7, dpi=600, limitsize=TRUE, bg="white")
+```
+
+```{r facet wrapped site, salt, land use plot}
+#Set factors again:
+denit_ACET$Salt <- factor(denit_ACET$Salt, levels = c("low", "medium", "high", "L/M/H ditch"))
+# rename 'combined':
+denit_ACET[32,3] <- "L/M/H ditch"
+
+plot.denit_ACET_2 <- ggplot(denit_ACET, aes(x=Salt, y=Denitrification_rate)) +
+                     geom_boxplot(aes(color=Salt), outlier.shape = NA) +
+                     geom_point(aes(color=Salt, shape = Field_or_Buffer), size = 3.5, position = position_jitterdodge()) +
+  facet_wrap(. ~Field_location) +
+  scale_color_manual(values=c("green2","yellow2","red2", "burlywood2"), labels = c("low", "medium", "high", "low/med/high ditch"), name="Salinity")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
+          axis.text=element_text(size=14),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="right", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "Salinity", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  
+ 
+plot.denit_ACET_2
+
+#ggsave("../figures/facetSite_LU&Salt_AcetOnly.png", plot=plot.denit_ACET_2, device="png", path=NULL, scale=1, width=12, height=6, dpi=600, limitsize=TRUE, bg="white")
+```
+
+```{r method differences}
+# new df with just first 8 samples:
+method_comparison <- denit_ACET[1:8,]
+
+method_comparison$method <- c("error", "normal", "error", "normal", "error", "normal", "error", "normal")
+
+plot.error_v_normal_ACET <- ggplot(method_comparison, aes(x=method, y=Denitrification_rate)) +
+                     geom_boxplot(aes(color=method), outlier.shape = NA) +
+                     geom_point(aes(color=method), size = 3.5, position = position_jitterdodge()) +
+  scale_color_manual(values=c("red","forestgreen"), labels = c("error", "normal"), name="Method")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
+          axis.text=element_text(size=14),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="none", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "Method", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  
+ 
+plot.error_v_normal_ACET
+
+#ggsave("../figures/methodComparison.png", plot=plot.error_v_normal_ACET, device="png", path=NULL, scale=1, width=10, height=7, dpi=600, limitsize=TRUE, bg="white")
+```
+
+```{r replot methods with correction}
+# new df with just first 8 samples, corrected:
+method_comparison_corrected <- denit_CORRECTED[c(1,3:9),]
+
+method_comparison_corrected$method <- c("error", "normal", "error", "normal", "error", "normal", "error", "normal")
+
+plot.error_v_normal_corrected <- ggplot(method_comparison_corrected, aes(x=method, y=Denitrification_rate)) +
+                     geom_boxplot(aes(color=method), outlier.shape = NA) +
+                     geom_point(aes(color=method), size = 3.5, position = position_jitterdodge()) +
+  scale_color_manual(values=c("red","forestgreen"), labels = c("error", "normal"), name="Method")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
+          axis.text=element_text(size=14),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="none", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "Method", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  
+ 
+plot.error_v_normal_corrected
+
+#ggsave("../figures/methodComparison.png", plot=plot.error_v_normal_ACET, device="png", path=NULL, scale=1, width=10, height=7, dpi=600, limitsize=TRUE, bg="white")
+```
+
+```{r panel together method comparisons}
+methods2panel <- ggarrange(plot.error_v_normal_ACET, plot.error_v_normal_corrected, labels = c("Before correction", "After correction"), ncol = 2, nrow = 1, legend = "none", common.legend = T)
+
+methods2panel
+
+#ggsave("../figures/corrections/method2panel.png", plot=methods2panel, device="png", path=NULL, scale=1, width=10, height=7, dpi=600, limitsize=TRUE, bg="white")
+```
+
+```{r}
+#Set factors again:
+denit_corrected_ACET$Salt <- factor(denit_ACET$Salt, levels = c("low", "medium", "high", "L/M/H ditch"))
+# rename 'combined':
+denit_corrected_ACET[32,3] <- "L/M/H ditch"
+
+plot.denit_ACET_2_corr <- ggplot(denit_corrected_ACET, aes(x=Salt, y=Denitrification_rate)) +
+                     geom_boxplot(aes(color=Salt), outlier.shape = NA) +
+                     geom_point(aes(color=Salt, shape = Field_or_Buffer), size = 3.5, position = position_jitterdodge()) +
+  facet_wrap(. ~Field_location) +
+  scale_color_manual(values=c("green2","yellow2","red2", "burlywood2"), labels = c("low", "medium", "high", "low/med/high ditch"), name="Salinity")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
+          axis.text=element_text(size=14),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="right", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "Salinity", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  
+ 
+plot.denit_ACET_2_corr
+```
+
+```{r}
+methods2panel2 <- ggarrange(plot.denit_ACET_2, plot.denit_ACET_2_corr, labels = c("Before correction", "After correction"), ncol = 2, nrow = 1, legend = "right", common.legend = T)
+
+methods2panel2
+
+#ggsave("../figures/corrections/methods2panel2.png", plot=methods2panel2, device="png", path=NULL, scale=1, width=17, height=7, dpi=600, limitsize=TRUE, bg="white")
+```
+# Make boxplots of individual sites, for map inset
+
+```{r wrangle low and main only}
+# For better communication, change 'buffer' to 'ditch':
+denit_corrected_ACET$Field_or_Buffer[29:32] <- "ditch"
+
+# New df to try adding averaged low/main samples:
+denit_corrected_ACET_2 <- denit_corrected_ACET
+
+# Insert new rows with averaged values:
+denit_corrected_ACET_2[(nrow(denit_corrected_ACET_2)+1), 6] <- mean(denit_corrected_ACET[1:2, 6])
+# Add sample information:
+denit_corrected_ACET_2[33,1] <- "AG_HC_001_ACET_Avg"
+
+denit_corrected_ACET_2[(nrow(denit_corrected_ACET_2)+1), 6] <- mean(denit_corrected_ACET[3:4, 6])
+# Add sample information:
+denit_corrected_ACET_2[34,1] <- "AG_HC_002_ACET_Avg"
+
+denit_corrected_ACET_2[(nrow(denit_corrected_ACET_2)+1), 6] <- mean(denit_corrected_ACET[5:6, 6])
+# Add sample information:
+denit_corrected_ACET_2[35,1] <- "AG_HC_003_ACET_Avg"
+
+denit_corrected_ACET_2[(nrow(denit_corrected_ACET_2)+1), 6] <- mean(denit_corrected_ACET[7:8, 6])
+# Add sample information:
+denit_corrected_ACET_2[36,1] <- "AG_HC_004_ACET_Avg"
+
+  
+# Copy meta data from original samples:
+denit_corrected_ACET_2[33:36,2:5] <- denit_corrected_ACET_2[1:4, 2:5]
+```
+
+```{r}
+plot.low_main_ACE <- ggplot(denit_corrected_ACET_2[c(33:36,29),], aes(x=Field_or_Buffer, y=Denitrification_rate)) +
+                     geom_boxplot(aes(color=Field_or_Buffer), outlier.shape = NA) +
+                     geom_point(aes(color=Field_or_Buffer, shape=Salt), size = 4, position = position_jitterdodge()) +
+  scale_color_manual(values=c("black","#E69F00"), labels = c("ditch", "field"), name="Land Use")+
+  scale_shape_manual(values = 4)+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=28),axis.title=element_text(size=28,face="bold"),
+          axis.text=element_text(size=28),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 28), legend.position="none", legend.title = element_text(size=28), legend.text=element_text(size=28)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "Land Use", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))+
+  scale_y_continuous(limits = c(-5, 225))
+  
+ 
+plot.low_main_ACE
+
+#ggsave("../figures/MapInsets/low_main.png", plot=plot.low_main_ACE, device="png", path=NULL, scale=1, width=10, height=7, dpi=600, limitsize=TRUE, bg="white")
+```
+
+```{r High Main}
+plot.high_main_ACE <- ggplot(denit_corrected_ACET[c(13:16,31),], aes(x=Field_or_Buffer, y=Denitrification_rate)) +
+                     geom_boxplot(aes(color=Field_or_Buffer), outlier.shape = NA) +
+                     geom_point(aes(color=Field_or_Buffer, shape=Salt), size = 6, position = position_jitterdodge()) +
+  scale_color_manual(values=c("black","#56B4E9"), labels = c("ditch", "field"), name="Land Use")+
+  scale_shape_manual(values = 18)+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=28),axis.title=element_text(size=28,face="bold"),
+          axis.text=element_text(size=28),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 28), legend.position="none", legend.title = element_text(size=28), legend.text=element_text(size=28)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "Land Use", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))+
+  scale_y_continuous(limits = c(-5, 225))
+  
+ 
+plot.high_main_ACE
+
+#ggsave("../figures/MapInsets/high_main.png", plot=plot.high_main_ACE, device="png", path=NULL, scale=1, width=10, height=7, dpi=600, limitsize=TRUE, bg="white")
+```
+
+```{r}
+plot.med_main_ACE <- ggplot(denit_corrected_ACET[c(9:12,30),], aes(x=Field_or_Buffer, y=Denitrification_rate)) +
+                     geom_boxplot(aes(color=Field_or_Buffer), outlier.shape = NA) +
+                     geom_point(aes(color=Field_or_Buffer, shape=Salt), size = 4, position = position_jitterdodge()) +
+  scale_color_manual(values=c("black","#D55E00"), labels = c("ditch", "field"), name="Land Use")+
+  scale_shape_manual(values = 15)+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=28),axis.title=element_text(size=28,face="bold"),
+          axis.text=element_text(size=28),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 28), legend.position="none", legend.title = element_text(size=28), legend.text=element_text(size=28)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "Land Use", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))+
+  scale_y_continuous(limits = c(-5, 225))
+  
+ 
+plot.med_main_ACE
+
+#ggsave("../figures/MapInsets/med_main.png", plot=plot.med_main_ACE, device="png", path=NULL, scale=1, width=10, height=7, dpi=600, limitsize=TRUE, bg="white")
+```
+
+```{r Color-blind-friendly palette}
+# From: http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
+
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+```
+
+```{r Internal plots}
+plot.internal_ACET <- ggplot(denit_corrected_ACET[c(17:28, 32),], aes(x=Salt, y=Denitrification_rate)) +
+                     geom_boxplot(aes(color=Salt), outlier.shape = NA) +
+                     geom_point(aes(color=Salt, shape = Salt), size = 4, position = position_jitterdodge()) +
+  scale_color_manual(values=c("#E69F00","#D55E00", "#56B4E9", "#000000"), labels = c("low", "medium", "high", "ditch"), name="")+
+  scale_shape_manual(values = c(4,15,18,19), name = "Salinity", labels=c("low", "medium", "high", "Low/Medium/High ditch"))+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=28),axis.title=element_text(size=28,face="bold"),
+          axis.text=element_text(size=28),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 28), legend.position="none", legend.title = element_text(size=28), legend.text=element_text(size=28)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "Salinity", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))+
+  scale_y_continuous(limits = c(-5, 225))
+  
+plot.internal_ACET
+
+#ggsave("../figures/MapInsets/internal.png", plot=plot.internal_ACET, device="png", path=NULL, scale=1, width=11, height=7, dpi=600, limitsize=TRUE, bg="white")
+```
+
+```{r extract legend and save}
+leg <- get_legend(plot.internal_ACET, position = "right") #Extract legend as a legend Grob
+legend_plot <- as_ggplot(leg) #Asign the grob as a ggplot
+legend_plot #View the plot
+
+#ggsave("../figures/MapInsets/legend.png", plot=legend_plot, device="png", path=NULL, scale=1, dpi=300, limitsize=TRUE, bg="white")
+```
+
+```{r}
+# New data frame from denit_corrected_ACET_2 with only main:
+denit_corrected_ACET_MainOnly <- denit_corrected_ACET_2[c(9:16,29:31,33:36),]
+
+
+plot.main_ACE_facet <- ggplot(denit_corrected_ACET_MainOnly, aes(x=Field_or_Buffer, y=Denitrification_rate)) +
+                     geom_boxplot(aes(color=Field_or_Buffer), outlier.shape = NA) +
+                     geom_point(aes(color=Field_or_Buffer, shape=Salt), size = 3, position = position_jitterdodge()) +
+  facet_wrap(~Salt)+
+  #scale_color_manual(values=c("#E69F00","#D55E00", "#56B4E9", "#000000"), labels = c("ditch", "field"), name="Land Use")+
+  scale_shape_manual(values = c(4,15,18), name = "Salinity", labels=c("low", "medium", "high"))+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
+          axis.text=element_text(size=14),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="right", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "Land Use", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))+
+  scale_y_continuous(limits = c(-5, 225))
+  
+ 
+plot.main_ACE_facet
+
+# Font size double?
+```
+
+
