@@ -12,10 +12,11 @@ knitr::opts_chunk$set(echo = TRUE)
 rm(list=ls())
 
 # Set working directory:
-setwd("~/GitHub/CNH2/analyses")
+#setwd("~/GitHub/Denitrification_Enzyme_Assays/HydeCounty/analyses") # for R desktop users
+setwd("/cloud/home/r825761/GitHub/Denitrification_Enzyme_Assays/HydeCounty/analyses") # for Posit Cloud users
 
 # Use to set root directory for knitr
-knitr::opts_knit$set(root.dir="~/GitHub/CNH2/analyses")
+#knitr::opts_knit$set(root.dir="~/GitHub/Denitrification_Enzyme_Assays/HydeCounty/analyses") # for R desktop users
 ```
 
 ```{r code dependencies}
@@ -25,10 +26,10 @@ require("ggplot2"):require("tidyr"):require("ggpubr")
 
 ```{r import data}
 # Read in denitrification rate calculations from Hyde County DEA, 20221208 sampling:
-denit_rates <- read.csv("~/GitHub/CNH2/data/denit_rates_HydeCo_20221208.csv")
+denit_rates <- read.csv("~/GitHub//Denitrification_Enzyme_Assays/HydeCounty/data/denit_rates_HydeCo_20221208.csv")
 
 # Read in denitrification rate calculation with CORRECTED rates for morning samples:
-denit_CORRECTED <- read.csv("~/GitHub/CNH2/data/CORRECTED_denit_rates_HydeCo_20221208.csv")
+denit_CORRECTED <- read.csv("~/GitHub//Denitrification_Enzyme_Assays/HydeCounty/data/CORRECTED_denit_rates_HydeCo_20221208.csv")
 ```
 
 ```{r plotting}
