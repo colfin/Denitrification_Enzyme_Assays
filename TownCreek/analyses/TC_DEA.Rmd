@@ -1,5 +1,5 @@
 ---
-title: "CNH2_DEA"
+title: "TC_DEA"
 author: "CF"
 date: "`r Sys.Date()`"
 output: html_document
@@ -12,11 +12,11 @@ knitr::opts_chunk$set(echo = TRUE)
 rm(list=ls())
 
 # Set working directory:
-#setwd("~/GitHub/Denitrification_Enzyme_Assays/HydeCounty/analyses") # for R desktop users
-setwd("/cloud/home/r825761/GitHub/Denitrification_Enzyme_Assays/HydeCounty/analyses") # for Posit Cloud users
+setwd("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/analyses") # for R desktop users
+#setwd("/cloud/home/r825761/GitHub/Denitrification_Enzyme_Assays/TownCreek/analyses") # for Posit Cloud users
 
 # Use to set root directory for knitr
-#knitr::opts_knit$set(root.dir="~/GitHub/Denitrification_Enzyme_Assays/HydeCounty/analyses") # for R desktop users
+knitr::opts_knit$set(root.dir="~/GitHub/Denitrification_Enzyme_Assays/TownCreek/analyses") # for R desktop users
 ```
 
 ```{r code dependencies}
@@ -26,20 +26,13 @@ require("ggplot2"):require("tidyr"):require("ggpubr")
 
 ```{r import data}
 # Read in denitrification rate calculations from Hyde County DEA, 20221208 sampling:
-denit_rates <- read.csv("~/GitHub//Denitrification_Enzyme_Assays/HydeCounty/data/denit_rates_HydeCo_20221208.csv")
-
-# Read in denitrification rate calculation with CORRECTED rates for morning samples:
-denit_CORRECTED <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/HydeCounty/data/CORRECTED_denit_rates_HydeCo_20221208.csv")
+denit_rates <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/20230131/TownCreek_RSC_DEA_20230131.csv")
 ```
 
-```{r plotting}
-# Set levels of Salt to make plotting easier:
-denit_rates$Salt <- factor(denit_rates$Salt, levels = c("low", "medium", "high", "combined"))
-
-plot.denit_rates <- ggplot(denit_rates, aes(x=Salt, y=Denitrification_rate)) +
-                     geom_boxplot(aes(color=Salt), outlier.shape = NA) +
-                     geom_point(aes(color=Salt), size = 1.5, position = position_jitterdodge()) +
-  scale_color_manual(values=c("gray85","gray44","gray4", "burlywood2"), name="Salinity")+
+```{r plotting in-stream vs dry}
+plot.denit_rates <- ggplot(denit_rates, aes(x=RSC, y=Denitrification_rate)) +
+                     geom_boxplot(outlier.shape = NA) +
+                     geom_point(aes(shape=Acetylene), size = 3, position = position_jitterdodge()) +
   theme_bw() +
   #Remove plot grid lines
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
@@ -47,9 +40,9 @@ plot.denit_rates <- ggplot(denit_rates, aes(x=Salt, y=Denitrification_rate)) +
   theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
           axis.text=element_text(size=14),  
           axis.title.y=element_text(margin=margin(r=10)),
-          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="none", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="right", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "Salinity", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+          labs(x = "RSC", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
   theme(rect=element_rect(fill="transparent"))+
   theme(plot.background = element_rect(color=NA))
   
@@ -59,15 +52,12 @@ plot.denit_rates
 
 ```{r remove NO_ACET}
 denit_ACET <- dplyr::filter(denit_rates, denit_rates$Acetylene == "ACET", .preserve = TRUE)
-
-denit_corrected_ACET <- dplyr::filter(denit_CORRECTED, denit_CORRECTED$Acetylene == "ACET", .preserve = TRUE)
 ```
 
 ```{r plot ACET}
-plot.denit_ACET <- ggplot(denit_ACET, aes(x=Salt, y=Denitrification_rate)) +
-                     geom_boxplot(aes(color=Salt), outlier.shape = NA) +
-                     geom_point(aes(color=Salt), size = 1.5, position = position_jitterdodge()) +
-  scale_color_manual(values=c("gray85","gray44","gray4", "burlywood2"), labels = c("low", "medium", "high", "combined"), name="Salinity")+
+plot.denit_rates_ACET <- ggplot(denit_ACET, aes(x=RSC, y=Denitrification_rate)) +
+                     geom_boxplot(outlier.shape = NA) +
+                     geom_point(aes(shape=Acetylene), size = 3, position = position_jitterdodge()) +
   theme_bw() +
   #Remove plot grid lines
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
@@ -77,23 +67,22 @@ plot.denit_ACET <- ggplot(denit_ACET, aes(x=Salt, y=Denitrification_rate)) +
           axis.title.y=element_text(margin=margin(r=10)),
           panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="none", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "Salinity", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+          labs(x = "RSC", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
   theme(rect=element_rect(fill="transparent"))+
   theme(plot.background = element_rect(color=NA))
   
  
-plot.denit_ACET
+plot.denit_rates_ACET
 
 #ggsave("../figures/denit_v_salt_AcetOnly.tiff", plot=plot.denit_ACET, device="tiff", path=NULL, scale=1, width=10, height=7, dpi=600, limitsize=TRUE, bg="white")
 
 #ggsave("../figures/denit_v_salt_AcetOnly.png", plot=plot.denit_ACET, device="png", path=NULL, scale=1, width=10, height=7, dpi=600, limitsize=TRUE, bg="white")
 ```
 
-```{r plot buffer vs field}
-plot.buff_v_fied_ACET <- ggplot(denit_ACET, aes(x=Field_or_Buffer, y=Denitrification_rate)) +
-                     geom_boxplot(aes(color=Field_or_Buffer), outlier.shape = NA) +
-                     geom_point(aes(color=Field_or_Buffer), size = 1.5, position = position_jitterdodge()) +
-  scale_color_manual(values=c("brown","forestgreen"), labels = c("buffer", "field"), name="Land Use")+
+```{r plot in-stream only}
+plot.denit_rates_IS <- ggplot(denit_rates[1:5,], aes(x=RSC, y=Denitrification_rate)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_point(aes(shape=Acetylene, color=as.factor(Pool)), size = 3, position = position_jitterdodge()) +
   theme_bw() +
   #Remove plot grid lines
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
@@ -101,14 +90,14 @@ plot.buff_v_fied_ACET <- ggplot(denit_ACET, aes(x=Field_or_Buffer, y=Denitrifica
   theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
           axis.text=element_text(size=14),  
           axis.title.y=element_text(margin=margin(r=10)),
-          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="none", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="right", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "Land Use", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+          labs(x = "RSC", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
   theme(rect=element_rect(fill="transparent"))+
   theme(plot.background = element_rect(color=NA))
   
  
-plot.buff_v_fied_ACET
+plot.denit_rates_IS
 
 #ggsave("../figures/buff_v_field_AcetOnly.tiff", plot=plot.buff_v_fied_ACET, device="tiff", path=NULL, scale=1, width=10, height=7, dpi=600, limitsize=TRUE, bg="white")
 
