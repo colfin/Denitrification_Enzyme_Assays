@@ -1,0 +1,47 @@
+Survey_Number,Site_Number,Site_Name,Sample_Taken_By,Date_Time,Time,Water_Temperature_(Degrees-C),Specific_Conductivity_(uS/cm),pH,ORP_(mv),Dissolved_Oxygen_(%),Dissolved_Oxygen_(mg/l),Nitrate_(NO3-N;mg/l),Instream_Woody_Debris&Epifaunal_Habitat(Abundant_Minor_Absent),Channel_Erosion(Severe_Minor_Absent),Stream-Floodplain_Connection(Yes_No),Trash(Severe_Minor_Absent),Notes,,
+1,1,Pool 1,Eric/Cam,2023-02-01,8:15,11.4,50.2,7.03,187.8,96.30,10.52,0.19,Minor,Minor,Yes,Minor,"- Specific conductivity is lower than expected. 
+- Suspecting this could be due to the heavy amounts of rainfall pushing the water through the system. 
+- Heavier than normal rainfall in the past",,
+1,2,Pool 2,Rob,2023-02-01,8:30,10.8,35.6,7.03,187,98.20,10.87,0.09,Abundant,Minor,Yes,Minor,"- Evidence of water level rising seen in mulchy, woody material debris settled linearly along the bank at this site.",,
+1,3,Pool 3,Cam,2023-02-01,8:45,11.1,41.3,7.9,179.1,97.90,10.76,0.15,Minor,Severe,Yes,Minor,"- There was a ""slump"" in the field, it can be identified in the field when you see a chunk of land that slides 
+and displaces out of its original spot but is still together, like a piece of the land just shifted but is still intact",,
+1,4,Pool 4,Cam,2023-02-01,9:00,10.9,42.6,7.03,173.1,96.60,10.66,0.14,Minor,Minor,Yes,Minor,NA,,
+1,6,Willis,Rob,2023-02-01,9:30,11.4,14.82,6.9,129,90.70,9.86,0.14,Minor,Severe,Yes,Severe,There was an obviouse and quite extreme cut back which tells us that the flow velocity is greater/faster near the bank rather than at the center which is opposite to normal streams/rivers/creeks where flow velocity is greater at the center,,
+2,1,Pool 1,Nicole/Rob,2023-02-08,8:05,11.6,317.4,6.8,200.7,77.40,8.4,1.4,Absent,Minor,No,Minor,- Water was very clear could be reflection from the sky or other causes not yet determined,,
+2,2,Pool 2,Rob,2023-02-08,8:13,10.8,314,6.8,197.4,84.40,9.35,1.47,Absent,Minor,No,Minor,"- Clarity/Turbidity is higher than last week which could be due to the high levels of rainfall &
+runoff the system experienced since last weeks rainfall",,
+2,3,Pool 3,Rob,2023-02-08,8:24,10.5,302.5,6.75,161.9,79.40,8.84,1.43,Absent,Minor,No,Minor,"- The first 2 samples were taken too quickly which could have caused error in the data. 
+From this point forward we waited 3-4minutes before transcibing the data this gave the sensor time to stabilize",,
+2,4,Pool 4,Rob,2023-02-08,8:40,10.9,292.6,6.14,116,66.90,7.4,1.2,Minor,Severe,No,Severe,- Influx of sediment build up made it difficult to get the probe fully submerged,,
+2,5,Reach,Rob,2023-02-08,8:50,11.4,14.85,6.65,99.4,77.70,8.49,1.06,Absent,Absent,No,Absent,- Reach Gauge = 1.5,,
+3,1,Pool 1,Nicholas,2023-02-15,8:25,12.2,14.8,6.34,231.8,77.50,8.3,1.6,Minor,Absent,No,Minor,NA,,
+3,2,Pool 2,Cam,2023-02-15,8:31,12.1,292.4,6.77,210.3,83.30,8.95,1.48,Minor,Severe,No,Severe,"-Exposed black tarp part of the system (severe)
+-Woody matterial/debris (minor) from previous storm here during survey 2",,
+3,3,Pool 3,Cam,2023-02-15,8:41,11.5,279.9,6.72,195.6,80.70,8.78,1.69,Minor,Severe,No,Severe,"- Can see sandy bottom in the Pool 3, not seen previously
+- Good visibilty (did not test for turbidity)",,
+3,4,Pool 4,Cam/Eric,2023-02-15,8:50,12.2,277.1,6.36,143,72.90,7.82,1.48,Minor,Severe,No,Severe,"- Hard to find spot to get YSI meter completely submerged 
+- Island is more exposed than previous survey 
+- More algae than Pool 3 but still moderate",,
+3,5,Reach,Cam,2023-02-15,8:56,12.5,277.8,6.59,112.6,78.60,8.37,1.47,Absent,Minor,Yes,Absent,"- Moderate to severe algae -No woody debris -Flow average:.2 
+- Depth measurement average: .029375 meters",,
+3,6,Willis,Eric,2023-02-15,9:24,10.9,100,6.73,145.5,83.10,9.2,1.62,Abundant,Absent,Yes,Minor,"- Water is 4 ft deep 
+- Water is still, no flow 
+- Foam and woody debris on top of water (severe)
+- Looks like ""organic sludge"" nasty film, oil like glaze on water surface 
+- Branch in front if the culvert at Willis",,
+4,1,Pool 1,Nicholas,2023-02-22,8:16,14.4,314.5,6.18,242.3,47.21,4.81,0.39,Minor,Minor,No,Minor,- Slightly more trash than usual but still considered minor. - there was a small fish,,
+4,2,Pool 2,Rob,2023-02-22,8:22,13.9,301.1,6.43,232.8,76.90,7.92,0.42,Minor,Minor,No,Minor,NA,,
+4,3,Pool 3,Rob,2023-02-22,8:31,13.8,295.6,6.22,230.4,68.10,7.03,0.49,Minor,Minor,No,Minor,NA,,
+4,4,Pool 4,Rob,2023-02-22,8:35,13.2,304.3,6.02,51.6,56.70,5.81,0.4,Minor,Minor,No,Minor,NA,,
+4,6,Willis,Rob,2023-02-22,8:53,15.9,377.8,6.34,53.8,53.80,5.31,0.39,Minor,Minor,No,Minor,NA,,
+5,1,Pool 1,Aaliyah,2023-03-01,8:15,10,299.2,6.43,269.9,68.40,7.71,0.85,Absent,Absent,Yes,Minor,- Low clarity due to pollen,,
+5,2,Pool 2,Aaliyah,2023-03-01,8:20,8,276.7,6.57,261.8,74.80,8.83,0.74,Abundant,Minor,Yes,Minor,NA,,
+5,3,Pool 3,Aaliyah,2023-03-01,8:32,7.4,249.4,6.52,210.4,64.60,7.76,0.79,Abundant,Minor,Yes,Minor,- Lots of algea present,,
+5,4,Pool 4,Aaliyah,2023-03-01,8:46,8.9,245.6,6.31,71.8,54.40,6.3,0.76,Abundant,Minor,No,Minor,"- A lot of algea, low water level, high frequency sensor not well submerged. Stage at Reach 0.1",,
+5,6,Willis,Nicole,2023-03-01,9:15,11.5,341.3,6.5,NA,55.30,6.02,0.81,Abundant,Absent,No,Minor,- Low water levels,,
+6,1,Pool 1,Max,2023-03-22,8:21,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,,
+6,2,Pool 2,Max,2023-03-22,8:31,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,,
+6,3,Pool 3,Max,2023-03-22,8:38,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,,
+6,4,Pool 4,Max,2023-03-22,8:47,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,,
+6,5,Reach,Max,2023-03-22,9:06,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,,
+6,6,Willis,Max,2023-03-22,9:19,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,,

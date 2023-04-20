@@ -1,0 +1,59 @@
+---
+title: "DEA_Calculations"
+author: "CF"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r setup two}
+# Clear environment:
+rm(list=ls())
+
+# Set working directory:
+setwd("~/GitHub/Denitrification_Enzyme_Assays/Calculations/analyses") # for R desktop users
+#setwd("/cloud/home/r825761/GitHub/Denitrification_Enzyme_Assays/TownCreek/analyses") # for Posit Cloud users
+
+# Use to set root directory for knitr
+knitr::opts_knit$set(root.dir="~/GitHub/Denitrification_Enzyme_Assays/Calculations/analyses") # for R desktop users
+```
+
+```{r}
+# User enters area from GC
+# Calculate ppm using standard curve
+# User will need to enter standard curve, then R should plot, do regression, provide equation
+# R convert area to ppm
+# As GC run is ongoing, plot sets of T0 - T3, provide R2 for that set of samples
+
+# dry mass:
+  # user input the DEA wet mass (and other columns)
+  #
+```
+
+
+```{r}
+dry_mass <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/Calculations/data/Dry_mass_calc.csv")
+```
+
+```{r}
+# Remove example column:
+dry_mass <- dry_mass[,-11]
+```
+
+```{r}
+tin_plus_wet_soil <- 28
+
+tin_weight <- 2
+
+wet_soil <- tin_plus_wet_soil - tin_weight
+wet_soil
+```
+
+```{r}
+# make a new, empty, data frame, and use calculations to replicate 'dry_mass'
+  # all the 'user input', will be imported from 'dry_mass'
+```
+
