@@ -5,6 +5,9 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
+# Research Question:
+## How do regenerative stormwater conveyance (RSC) potential denitrification rates compare across space (a dry vs. in-stream RSC, upstream vs. downstream, island vs. submerged) and seasons?
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
