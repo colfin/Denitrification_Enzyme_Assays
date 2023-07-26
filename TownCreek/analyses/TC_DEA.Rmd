@@ -33,11 +33,14 @@ cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2"
 ```
 
 ```{r import data}
-# Read in denitrification rate calculations from Town Creek DEA, 2023-01-31 sampling:
+# Read in denitrification rates from Town Creek DEA, 2023-01-31 sampling:
 denit_rates <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/20230131/TownCreek_RSC_DEA_20230131.csv")
 
 # Read in denitrification rates from Town Creek DEA, 2023-03-29 sampling:
 denit_rates_SPRING <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/20230329/TownCreek_RSC_DEA_20230329.csv")
+
+# Read in denitrification rates from Town Creek DEA, 2023-06-21 sampling:
+denit_rates_SUMMER <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/20230621/TownCreek_RSC_DEA_20230621.csv")
 
 # Read in GEOL Spring 2023 YSI data:
 YSI_data <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/GEOL_TC_YSI_RdataSpring2023.csv")
@@ -88,7 +91,8 @@ plot.denit_rates_SP <- ggplot(denit_rates_SPRING, aes(x=RSC, y=Denitrification_r
  
 plot.denit_rates_SP
 ```
-```{r}
+
+```{r Spring without outlier}
 # one high value makes it difficult to see difference in plot above. Try plotting without that sample:
 plot.denit_rates_SP_ZOOM <- ggplot(denit_rates_SPRING[-5,], aes(x=RSC, y=Denitrification_rate)) +
                      geom_boxplot(outlier.shape = NA) +
@@ -102,12 +106,33 @@ plot.denit_rates_SP_ZOOM <- ggplot(denit_rates_SPRING[-5,], aes(x=RSC, y=Denitri
           axis.title.y=element_text(margin=margin(r=10)),
           panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="right", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "RSC", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+          labs(x = "RSC", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="Spring without Outlier") +
   theme(rect=element_rect(fill="transparent"))+
   theme(plot.background = element_rect(color=NA))
   
  
 plot.denit_rates_SP_ZOOM
+```
+
+```{r Summer with NO_ACET}
+plot.denit_rates_SUMMER <- ggplot(denit_rates_SUMMER, aes(x=RSC, y=Denitrification_rate)) +
+                     geom_boxplot(outlier.shape = NA) +
+                     geom_point(aes(shape=Acetylene), size = 3, position = position_jitterdodge()) +
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
+          axis.text=element_text(size=14),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="right", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "RSC", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="SUMMER") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  
+ 
+plot.denit_rates_SUMMER
 ```
 
 
@@ -117,7 +142,11 @@ denit_ACET <- dplyr::filter(denit_rates, denit_rates$Acetylene == "ACET", .prese
 
 # Spring:
 denit_SPRING_ACET <- dplyr::filter(denit_rates_SPRING, denit_rates_SPRING$Acetylene == "ACET", .preserve = TRUE)
+
+# Summer:
+denit_SUMMER_ACET <- dplyr::filter(denit_rates_SUMMER, denit_rates_SUMMER$Acetylene == "ACET", .preserve = TRUE)
 ```
+
 
 ```{r plot ACET}
 plot.denit_rates_ACET <- ggplot(denit_ACET, aes(x=RSC, y=Denitrification_rate)) +
@@ -175,6 +204,9 @@ denit_ACET$combined_pool_name <- c("I1 (upstream)", "I1 (upstream)", "I4 (downst
 
 # Spring:
 denit_SPRING_ACET$combined_pool_name <- c("I1 (upstream)", "I1 (upstream)", "I1 (upstream)", "I1 (upstream)", "I4 (downstream)", "I4 (downstream)", "I4 (downstream)", "I4 (downstream)", "I4 (downstream)", "I4 (downstream)", "I4 (downstream)", "I4 (downstream)", "D4 (upstream)", "D4 (upstream)", "D4 (upstream)", "D4 (upstream)", "D5 (downstream)", "D5 (downstream)", "D5 (downstream)", "D5 (downstream)")
+
+# Summer:
+denit_SUMMER_ACET$combined_pool_name <- c("I1 (upstream)", "I1 (upstream)", "I1 (upstream)", "I1 (upstream)", "I4 (downstream)", "I4 (downstream)", "I4 (downstream)", "I4 (downstream)", "I4 (downstream)", "I4 (downstream)", "I4 (downstream)", "I4 (downstream)", "D4 (upstream)", "D4 (upstream)", "D4 (upstream)", "D4 (upstream)", "D5 (downstream)", "D5 (downstream)", "D5 (downstream)", "D5 (downstream)")
 ```
 
 ```{r}
@@ -227,7 +259,7 @@ plot.denit_ACET_allFactors_SPRING <- ggplot(denit_SPRING_ACET, aes(x=RSC, y=Deni
 plot.denit_ACET_allFactors_SPRING
 ```
 
-```{r}
+```{r SPRING all factors}
 plot.denit_ACET_allFactors_SPRING_2 <- ggplot(denit_SPRING_ACET, aes(x=RSC, y=Denitrification_rate)) +
                      geom_boxplot(outlier.shape = NA) +
                      geom_point(aes(shape=combined_pool_name, color=Water_column, fill = Water_column), size = 5, position = position_jitterdodge()) +
@@ -303,16 +335,48 @@ plot.denit_ACET_allFactors_SPRING_2_No4 <- ggplot(denit_SPRING_ACET[-4,], aes(x=
 plot.denit_ACET_allFactors_SPRING_2_No4
 ```
 
+```{r SUMMER all factors}
+plot.denit_ACET_allFactors_SUMMER <- ggplot(denit_SUMMER_ACET, aes(x=RSC, y=Denitrification_rate)) +
+                     geom_boxplot(outlier.shape = NA) +
+                     geom_point(aes(shape=combined_pool_name, color=Water_column, fill = Water_column), size = 5, position = position_jitterdodge()) +
+  scale_color_manual(values=c("#E69F00","#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level") +
+  scale_shape_manual(values = c(24, 25, 24, 25), labels = c("Dry RSC, up", "Dry RSC, down", "In-stream RSC, up", "In-stream RSC, down"), name = "Sample Location")+
+  scale_fill_manual(values = c("#E69F00", "#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
+          axis.text=element_text(size=14),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="right", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "RSC", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  
+ 
+plot.denit_ACET_allFactors_SUMMER
+```
+
+
 ```{r}
 #Add season information to the 2 dfs before joining:
 denit_ACET$Season <- "Winter (31 January 2023)"
 denit_SPRING_ACET$Season <- "Spring (29 March 2023)"
+denit_SUMMER_ACET$Season <- "Summer (21 June 2023)"
 
 # Combine the Winter (denit_ACET) and Spring (denit_SPRING_ACET) into one df:
 denit_combined <- merge(denit_ACET, denit_SPRING_ACET, all = T)
 
+# Merge Summer into denit_combined:
+denit_combined_wSUMMER <- merge(denit_combined, denit_SUMMER_ACET, all = TRUE)
+
 # Must set levels of Season:
 denit_combined$Season <- factor(denit_combined$Season, levels = c("Winter (31 January 2023)", "Spring (29 March 2023)"))
+
+denit_combined_wSUMMER$Season <- factor(denit_combined_wSUMMER$Season, levels = c("Winter (31 January 2023)", "Spring (29 March 2023)", "Summer (21 June 2023)"))
+
 ```
 
 ```{r}
@@ -402,6 +466,32 @@ legend_plot #View the plot
 
 #ggsave("../figures/pub/Fig3/Legend.tiff", plot=legend_plot, device="tiff", path=NULL, scale=1, dpi=900, limitsize=TRUE, bg="white")
 ```
+
+```{r Facet with Winter, Spring, and Summer}
+plot.denit_ACET_WinterSpringSummer <- ggplot(denit_combined_wSUMMER, aes(x=RSC, y=Denitrification_rate)) +
+                     geom_boxplot(outlier.shape = NA) +
+                     geom_point(aes(shape=combined_pool_name, color=Water_column, fill = Water_column), size = 5, position = position_jitterdodge()) +
+  facet_wrap(vars(Season))+
+  scale_color_manual(values=c("#E69F00","#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level") +
+  scale_shape_manual(values = c(24, 25, 24, 25), labels = c("Dry RSC, up", "Dry RSC, down", "In-stream RSC, up", "In-stream RSC, down"), name = "Sample Location")+
+  scale_fill_manual(values = c("#E69F00", "#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
+          axis.text=element_text(size=14),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="none", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "RSC", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  
+ 
+plot.denit_ACET_WinterSpringSummer
+```
+
 
 ```{r}
 # Winter only:
