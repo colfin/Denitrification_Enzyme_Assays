@@ -34,18 +34,29 @@ cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2"
 
 ```{r import data}
 # Read in denitrification rates from Town Creek DEA, 2023-01-31 sampling:
-denit_rates <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/20230131/TownCreek_RSC_DEA_20230131.csv")
+# Non-mac users, use relative path. Mac users may be able to use relative or absolute path, depending on repo location.
+
+#denit_rates <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/20230131/TownCreek_RSC_DEA_20230131.csv") # absolute path
+denit_rates <- read.csv("../data/20230131/TownCreek_RSC_DEA_20230131.csv") # relative path
 
 # Read in denitrification rates from Town Creek DEA, 2023-03-29 sampling:
-denit_rates_SPRING <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/20230329/TownCreek_RSC_DEA_20230329.csv")
+#denit_rates_SPRING <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/20230329/TownCreek_RSC_DEA_20230329.csv") # absolute path
+denit_rates_SPRING <- read.csv("../data/20230329/TownCreek_RSC_DEA_20230329.csv") # relative path
 
 # Read in denitrification rates from Town Creek DEA, 2023-06-21 sampling:
-denit_rates_SUMMER <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/20230621/TownCreek_RSC_DEA_20230621.csv")
+#denit_rates_SUMMER <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/20230621/TownCreek_RSC_DEA_20230621.csv") # absolute path
+denit_rates_SUMMER <- read.csv("../data/20230621/TownCreek_RSC_DEA_20230621.csv") # relative path
 
 # Read in GEOL Spring 2023 YSI data:
-YSI_data <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/GEOL_TC_YSI_RdataSpring2023.csv")
+#YSI_data <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/GEOL_TC_YSI_RdataSpring2023.csv") # absolute path
+YSI_data <- read.csv("../data/GEOL_TC_YSI_RdataSpring2023.csv") # relative path
+
 YSI_data <- YSI_data[,-c(19:20)] #Trim extra columns
 YSI_data <- YSI_data[-c(27:32),] # For now, get rid of sampling day with no values (22 March 2023)
+
+# Read in N species concentration data:
+#sediment_N <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/2023_SPRING_SUM_SoilKClExtracts.csv") # absolute path
+sediment_N <- read.csv("../data/2023_SPRING_SUM_SoilKClExtracts.csv") # relative path
 ```
 
 ```{r plotting in-stream vs dry}
@@ -306,7 +317,7 @@ plot.denit_ACET_allSPRING_INSET <- ggplot(denit_SPRING_ACET, aes(x=RSC, y=Denitr
  
 plot.denit_ACET_allSPRING_INSET
 
-ggsave("../figures/denit_allSpring.png", plot=plot.denit_ACET_allSPRING_INSET, device="png", path=NULL, scale=1, width=10, height=7, dpi=300, limitsize=TRUE, bg="white")
+#ggsave("../figures/denit_allSpring.png", plot=plot.denit_ACET_allSPRING_INSET, device="png", path=NULL, scale=1, width=10, height=7, dpi=300, limitsize=TRUE, bg="white")
 ```
 
 
@@ -464,7 +475,7 @@ leg <- get_legend(plot.denit_ACET_legend_mods, position = "right") #Extract lege
 legend_plot <- as_ggplot(leg) #Asign the grob as a ggplot
 legend_plot #View the plot
 
-#ggsave("../figures/pub/Fig3/Legend.tiff", plot=legend_plot, device="tiff", path=NULL, scale=1, dpi=900, limitsize=TRUE, bg="white")
+#ggsave("../figures/Legend.png", plot=legend_plot, device="png", path=NULL, scale=1, dpi=300, limitsize=TRUE, bg="white")
 ```
 
 ```{r Facet with Winter, Spring, and Summer}
@@ -490,10 +501,12 @@ plot.denit_ACET_WinterSpringSummer <- ggplot(denit_combined_wSUMMER, aes(x=RSC, 
   
  
 plot.denit_ACET_WinterSpringSummer
+
+#ggsave("../figures/denit_ACET_WinterSpringSum.png", plot=plot.denit_ACET_WinterSpringSummer, device="png", path=NULL, scale=1, width=10, height=7, dpi=300, limitsize=TRUE, bg="white")
 ```
 
 
-```{r}
+```{r ggarrange}
 # Winter only:
 plot.all_facs_with_leg <- ggarrange(plot.denit_ACET_allFactors, legend_plot, ncol = 2, nrow = 1, labels = NULL, legend = NULL)
 
@@ -519,6 +532,12 @@ plot.denit_ACET_WinterSpring_NewLeg_NoOut
 #ggsave("../figures/denit_ACET_WinterSpring_NoOut.tiff", plot=plot.denit_ACET_WinterSpring_NewLeg_NoOut, device="tiff", path=NULL, scale=1, width=10, height=7, dpi=300, limitsize=TRUE, bg="white")
 
 #ggsave("../figures/denit_ACET_WinterSpring_NoOut.png", plot=plot.denit_ACET_WinterSpring_NewLeg_NoOut, device="png", path=NULL, scale=1, width=10, height=7, dpi=300, limitsize=TRUE, bg="white")
+
+# Winter, Spring, and Summer:
+plot.denit_ACET_WinterSpringSum_wLeg <- ggarrange(plot.denit_ACET_WinterSpringSummer, ncol = 1, nrow = 1, labels = NULL, legend.grob = leg, legend = "right")
+
+plot.denit_ACET_WinterSpringSum_wLeg
+
 ```
 
 ## Spring 2023 GEOL YSI data:
@@ -620,6 +639,106 @@ DO_plot_P1P4
 #ggsave("../figures/YSI_DO.png", plot=DO_plot_P1P4, device="png", path=NULL, scale=1, width=10, height=7, dpi=300, limitsize=TRUE, bg="white")
 ```
 
+## Sediment N data
+
+```{r Wrangling sediment N data}
+# Remove NA rows at bottom
+sediment_N <- sediment_N[1:40,]
+
+# Convert negatives into zeroes:
+sediment_N_dropNegs <- sediment_N # copy into a new df to avoid overwriting original data
+
+sediment_N_dropNegs <- sediment_N_dropNegs %>%
+  dplyr::mutate(NO3.NO2_uM = ifelse(NO3.NO2_uM < 0, 0, NO3.NO2_uM))
+
+sediment_N_dropNegs <- sediment_N_dropNegs %>%
+  dplyr::mutate(NO3.NO2_mg.L = ifelse(NO3.NO2_mg.L < 0, 0, NO3.NO2_mg.L))
+
+# Add a date column:
+sediment_N_dropNegs$Season <- denit_combined_wSUMMER$Season[9:48]
+sediment_N_dropNegs$RSC <- denit_combined_wSUMMER$RSC[9:48]
+sediment_N_dropNegs$Pool <- denit_combined_wSUMMER$Pool[9:48]
+sediment_N_dropNegs$Up_or_down <- denit_combined_wSUMMER$Up_or_down[9:48]
+sediment_N_dropNegs$Water_column <- denit_combined_wSUMMER$Water_column[9:48]
+sediment_N_dropNegs$combined_pool_name <- denit_combined_wSUMMER$combined_pool_name[9:48]
+sediment_N_dropNegs$SampleID_DEA <- denit_combined_wSUMMER$Sample_ID[9:48]
+```
+
+```{r Plot sediment NH4 data}
+# Plot Winter and Spring NH4 together, using facet:
+plot.sediment_NH4 <- ggplot(sediment_N_dropNegs, aes(x=RSC, y=NH4_mg.L)) +
+                     geom_boxplot(outlier.shape = NA) +
+                     geom_point(aes(shape=combined_pool_name, color=Water_column, fill = Water_column), size = 5, position = position_jitterdodge()) +
+  facet_wrap(vars(Season))+
+  scale_color_manual(values=c("#E69F00","#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level") +
+  scale_shape_manual(values = c(24, 25, 24, 25), labels = c("Dry RSC, up", "Dry RSC, down", "In-stream RSC, up", "In-stream RSC, down"), name = "Sample Location")+
+  scale_fill_manual(values = c("#E69F00", "#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
+          axis.text=element_text(size=14),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="none", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "RSC", y = expression(paste("NH"[4], ""^{"+"}," (mg * L"^{-1}, ")")), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  
+ 
+plot.sediment_NH4
+```
+
+```{r Plot sediment NO2/NO3 data}
+# Plot Winter and Spring NO2/NO3 together, using facet:
+plot.sediment_NOX <- ggplot(sediment_N_dropNegs, aes(x=RSC, y=NO3.NO2_mg.L)) +
+                     geom_boxplot(outlier.shape = NA) +
+                     geom_point(aes(shape=combined_pool_name, color=Water_column, fill = Water_column), size = 5, position = position_jitterdodge()) +
+  facet_wrap(vars(Season))+
+  scale_color_manual(values=c("#E69F00","#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level") +
+  scale_shape_manual(values = c(24, 25, 24, 25), labels = c("Dry RSC, up", "Dry RSC, down", "In-stream RSC, up", "In-stream RSC, down"), name = "Sample Location")+
+  scale_fill_manual(values = c("#E69F00", "#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
+          axis.text=element_text(size=14),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="none", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "RSC", y = expression(paste("NO"[2], ""^{"-"},"/NO"[3], ""^{"-"}, " (mg * L"^{-1}, ")")), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  
+ 
+plot.sediment_NOX
+```
+
+```{r Panel together sediment N figures}
+plot.NH4_and_NOX <- ggarrange(plot.sediment_NH4, plot.sediment_NOX, ncol = 1, nrow = 2, labels = NULL, legend.grob = leg, legend = "right")
+
+plot.NH4_and_NOX
+
+#ggsave("../figures/sedimentNH4_and_NOX.png", plot=plot.NH4_and_NOX, device="png", path=NULL, scale=1, width=10, height=12, dpi=600, limitsize=TRUE, bg="white")
+```
+
+
+## Statistics
+
+```{r}
+# Check if columns are factors:
+str(denit_SPRING_ACET)
+
+# Make columns into factors for running stats:
+DEA$season <- as.factor(DEA$season)
+DEA$hydrology <- as.factor(DEA$hydrology)
+DEA$distance.bin <- as.factor(DEA$distance.bin)
+str(DEA)
+```
+
+
 ```{r}
 # Hypothesis testing with stats:
 # Small sample sizes and likely non-normal data, so must use nonparametric tests
@@ -630,7 +749,9 @@ dry_vs_IS <- wilcox.test(denit_SPRING_ACET$Denitrification_rate ~ denit_SPRING_A
 dry_vs_IS # p = 0.0124 , so the two RSCs are significantly different
 #summary(dry_vs_IS)
 
-# Want to test island vs. sumberged, for in-stream Pool 4, Spring only. Use a paired wilcox test
+
+
+# Want to test island vs. sumberged, for in-stream Pool 4, Spring only. Use a paired Wilcoxon test
 # First, subset data:
 Spring_ACET_P4 <- denit_SPRING_ACET[5:12,]
 island_vs_submerged <- wilcox.test(Spring_ACET_P4$Denitrification_rate ~ Spring_ACET_P4$Water_column, paired=T)
@@ -640,4 +761,54 @@ island_vs_submerged
 
 ```
 
+```{r Testing USGS precipitation data}
+install.packages("dataRetrieval")
+library("dataRetrieval")
+
+siteNumber <- "02084000"
+parameterCd <- "00045"
+
+SpringPrecip <- readNWISdv(
+  siteNumber, parameterCd,
+  "2023-03-22", "2023-03-29", statCd = "00006")
+
+SummerPrecip <- readNWISdv(
+  siteNumber, parameterCd,
+  "2023-06-14", "2023-06-21", statCd = "00006")
+
+# Add Season column
+SpringPrecip$Season <- "Spring (March 2023)"
+SummerPrecip$Season <- "Summer (June 2023)"
+
+# Merge:
+precip_SpringSummer <- merge(SpringPrecip, SummerPrecip, all = T)
+
+```
+
+```{r plot USGS precip data}
+plot.precip <- ggplot(precip_SpringSummer, aes(x=Date, y=X_00045_00006)) +
+                     geom_line(aes(linewidth= 1), arrow = arrow(angle = 90, ends = "last", type = "closed")) +
+                     #geom_point(aes(shape=combined_pool_name, color=Water_column, fill = Water_column), size = 5, position = position_jitterdodge()) +
+  facet_wrap(vars(Season), scales = "free_x")+
+  #scale_color_manual(values=c("#E69F00","#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level") +
+  #scale_shape_manual(values = c(24, 25, 24, 25), labels = c("Dry RSC, up", "Dry RSC, down", "In-stream RSC, up", "In-stream RSC, down"), name = "Sample Location")+
+ # scale_fill_manual(values = c("#E69F00", "#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=14),axis.title=element_text(size=21,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="none", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "Date", y = "Total Precipitation (inches)", title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  
+ 
+plot.precip
+
+ggsave("../figures/precipSprSum.png", plot=plot.precip, device="png", path=NULL, scale=1, width=16, height=7, dpi=600, limitsize=TRUE, bg="white")
+```
 
