@@ -390,7 +390,7 @@ denit_combined_wSUMMER$Season <- factor(denit_combined_wSUMMER$Season, levels = 
 
 ```
 
-```{r}
+```{r Winter Spring facet 14 point text}
 # Plot Winter and Spring together, using facet:
 plot.denit_ACET_WinterSpring <- ggplot(denit_combined, aes(x=RSC, y=Denitrification_rate)) +
                      geom_boxplot(outlier.shape = NA) +
@@ -415,6 +415,64 @@ plot.denit_ACET_WinterSpring <- ggplot(denit_combined, aes(x=RSC, y=Denitrificat
  
 plot.denit_ACET_WinterSpring
 ```
+
+```{r Winter Spring facet BIG text}
+# Plot Winter and Spring together, using facet:
+plot.denit_ACET_WinterSpring_BigFont <- ggplot(denit_combined, aes(x=RSC, y=Denitrification_rate)) +
+                     geom_boxplot(outlier.shape = NA) +
+                     geom_point(aes(shape=combined_pool_name, color=Water_column, fill = Water_column), size = 5, position = position_jitterdodge()) +
+  facet_wrap(vars(Season))+
+  scale_color_manual(values=c("#E69F00","#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level") +
+  scale_shape_manual(values = c(24, 25, 24, 25), labels = c("Dry RSC, up", "Dry RSC, down", "In-stream RSC, up", "In-stream RSC, down"), name = "Sample Location")+
+  scale_fill_manual(values = c("#E69F00", "#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=40),axis.title=element_text(size=40,face="bold"),
+          axis.text=element_text(size=40),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.title.x = element_text(margin = margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 40), legend.position="none", legend.title = element_text(size=40), legend.text=element_text(size=40)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "\nRegenerative Stormwater Conveyance (RSC) Type", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  
+ 
+plot.denit_ACET_WinterSpring_BigFont
+
+#ggsave("../figures/denit_WinterSpring_BigFont.png", plot=plot.denit_ACET_WinterSpring_BigFont, device="png", path=NULL, scale=1, width=17, height=10, dpi=900, limitsize=TRUE, bg="white")
+```
+
+```{r Summer only Big Font}
+plot.denit_ACET_Summer_BigFont <- ggplot(denit_SUMMER_ACET, aes(x=RSC, y=Denitrification_rate)) +
+                     geom_boxplot(outlier.shape = NA) +
+                     geom_point(aes(shape=combined_pool_name, color=Water_column, fill = Water_column), size = 5, position = position_jitterdodge()) +
+  facet_wrap(vars(Season))+
+  scale_color_manual(values=c("#E69F00","#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level") +
+  scale_shape_manual(values = c(24, 25, 24, 25), labels = c("Dry RSC, up", "Dry RSC, down", "In-stream RSC, up", "In-stream RSC, down"), name = "Sample Location")+
+  scale_fill_manual(values = c("#E69F00", "#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=40),axis.title=element_text(size=40,face="bold"),
+          axis.text=element_text(size=40),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.title.x = element_text(margin = margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 40), legend.position="none", legend.title = element_text(size=40), legend.text=element_text(size=40)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "\nRegenerative Stormwater Conveyance (RSC) Type", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  
+ 
+plot.denit_ACET_Summer_BigFont
+
+#ggsave("../figures/denit_Summer_BigFont.png", plot=plot.denit_ACET_Summer_BigFont, device="png", path=NULL, scale=1, width=17, height=10, dpi=900, limitsize=TRUE, bg="white")
+```
+
 
 ```{r}
 # Same plot as above, but remove outlier to better see differences:
@@ -444,7 +502,7 @@ plot.denit_ACET_WinterSpring_NoOut
 
 
 
-```{r}
+```{r Legend plot}
 # Create custom legend, then remove legend from above, then add legend again using ggpubr, or just in powerpoint
 
 plot.denit_ACET_legend_mods <- ggplot(denit_ACET, aes(x=RSC, y=Denitrification_rate)) +
@@ -470,12 +528,44 @@ plot.denit_ACET_legend_mods <- ggplot(denit_ACET, aes(x=RSC, y=Denitrification_r
 plot.denit_ACET_legend_mods
 ```
 
-```{r}
+```{r Legend plot bottom}
+plot.denit_ACET_legend_mods2 <- ggplot(denit_ACET, aes(x=RSC, y=Denitrification_rate)) +
+                     geom_boxplot(outlier.shape = NA) +
+                     geom_point(aes(shape=Up_or_down, color=Water_column), size = 5, position = position_jitterdodge()) +
+  scale_color_manual(values=c("#E69F00","#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level") +
+  scale_shape_manual(values = c(24, 25), labels = c("upstream", "downstream"), name = "Sample Location")+
+  #scale_fill_manual(values = c("white", "#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Stuff")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
+          axis.text=element_text(size=14),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="bottom", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "RSC", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  
+ 
+plot.denit_ACET_legend_mods2
+```
+
+
+```{r Legend extraction}
 leg <- get_legend(plot.denit_ACET_legend_mods, position = "right") #Extract legend as a legend Grob
 legend_plot <- as_ggplot(leg) #Asign the grob as a ggplot
 legend_plot #View the plot
 
 #ggsave("../figures/Legend.png", plot=legend_plot, device="png", path=NULL, scale=1, dpi=300, limitsize=TRUE, bg="white")
+
+leg_bottom <- get_legend(plot.denit_ACET_legend_mods2, position = "bottom") #Extract legend as a legend Grob
+legend_plot_bottom <- as_ggplot(leg_bottom) #Asign the grob as a ggplot
+legend_plot_bottom #View the plot
+
+ggsave("../figures/Legend_bottom.png", plot=legend_plot_bottom, device="png", path=NULL, scale=1, dpi=600, height = 3, width = 12, limitsize=T, bg="white")
+
 ```
 
 ```{r Facet with Winter, Spring, and Summer}
@@ -677,12 +767,12 @@ plot.sediment_NH4 <- ggplot(sediment_N_dropNegs, aes(x=RSC, y=NH4_mg.L)) +
   #Remove plot grid lines
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
   #Set axis title and text properties, tick marks, and labels
-  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
-          axis.text=element_text(size=14),  
+  theme(text=element_text(size=40),axis.title=element_text(size=30,face="bold"),
+          axis.text=element_text(size=30),  
           axis.title.y=element_text(margin=margin(r=10)),
-          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="none", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 40), legend.position="none", legend.title = element_text(size=40), legend.text=element_text(size=40)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "RSC", y = expression(paste("NH"[4], ""^{"+"}," (mg * L"^{-1}, ")")), title="") +
+          labs(x = "", y = expression(paste("NH"[4], ""^{"+"}," (mg * L"^{-1}, ")")), title="") +
   theme(rect=element_rect(fill="transparent"))+
   theme(plot.background = element_rect(color=NA))
   
@@ -703,12 +793,12 @@ plot.sediment_NOX <- ggplot(sediment_N_dropNegs, aes(x=RSC, y=NO3.NO2_mg.L)) +
   #Remove plot grid lines
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
   #Set axis title and text properties, tick marks, and labels
-  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
-          axis.text=element_text(size=14),  
+  theme(text=element_text(size=40), axis.title=element_text(size=30,face="bold"),
+          axis.text=element_text(size=30),  
           axis.title.y=element_text(margin=margin(r=10)),
-          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="none", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 40), legend.position="none", legend.title = element_text(size=40), legend.text=element_text(size=40)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "RSC", y = expression(paste("NO"[2], ""^{"-"},"/NO"[3], ""^{"-"}, " (mg * L"^{-1}, ")")), title="") +
+          labs(x = "\nRegenerative Stormwater Conveyance (RSC) Type", y = expression(paste("NO"[2], ""^{"-"},"/NO"[3], ""^{"-"}, " (mg * L"^{-1}, ")")), title="") +
   theme(rect=element_rect(fill="transparent"))+
   theme(plot.background = element_rect(color=NA))
   
@@ -717,11 +807,13 @@ plot.sediment_NOX
 ```
 
 ```{r Panel together sediment N figures}
-plot.NH4_and_NOX <- ggarrange(plot.sediment_NH4, plot.sediment_NOX, ncol = 1, nrow = 2, labels = NULL, legend.grob = leg, legend = "right")
+#plot.NH4_and_NOX <- ggarrange(plot.sediment_NH4, plot.sediment_NOX, ncol = 1, nrow = 2, labels = NULL, legend.grob = leg, legend = "right")
+
+plot.NH4_and_NOX <- ggarrange(plot.sediment_NH4, plot.sediment_NOX, ncol = 1, nrow = 2, labels = NULL, legend.grob = leg_bottom,legend = "bottom")
 
 plot.NH4_and_NOX
 
-#ggsave("../figures/sedimentNH4_and_NOX.png", plot=plot.NH4_and_NOX, device="png", path=NULL, scale=1, width=10, height=12, dpi=600, limitsize=TRUE, bg="white")
+#ggsave("../figures/sedimentNH4_and_NOX.png", plot=plot.NH4_and_NOX, device="png", path=NULL, scale=1, width=17, height=12, dpi=600, limitsize=TRUE, bg="white")
 ```
 
 
