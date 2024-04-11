@@ -1,12 +1,12 @@
 ---
-title: "TC_DEA"
+title: "PittCo_LD_DEA"
 author: "CF"
 date: "`r Sys.Date()`"
 output: html_document
 ---
 
 # Research Question:
-## How do regenerative stormwater conveyance (RSC) potential denitrification rates compare across space (a dry vs. in-stream RSC, upstream vs. downstream, island vs. submerged) and seasons?
+## How do soil denitrification potentials compare across subset of farm locations, on-field and buffer, in Pitt County, NC?
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -15,15 +15,20 @@ knitr::opts_chunk$set(echo = TRUE)
 rm(list=ls())
 
 # Set working directory:
-setwd("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/analyses") # for R desktop users
+setwd("~/GitHub/Denitrification_Enzyme_Assays/PittCounty/analyses/") # for R desktop users
 #setwd("/cloud/home/r825761/GitHub/Denitrification_Enzyme_Assays/TownCreek/analyses") # for Posit Cloud users
 
 # Use to set root directory for knitr
-knitr::opts_knit$set(root.dir="~/GitHub/Denitrification_Enzyme_Assays/TownCreek/analyses") # for R desktop users
+knitr::opts_knit$set(root.dir="~/GitHub/Denitrification_Enzyme_Assays/PittCounty/analyses") # for R desktop users
 ```
 
 ```{r code dependencies}
-require("ggplot2"):require("tidyr"):require("ggpubr"):require("rstatix")
+require("ggplot2")
+require("tidyr")
+require("ggpubr")
+require("rstatix")
+require("gasfluxes")
+require("dplyr")
 ```
 
 ```{r Color-blind-friendly palette}
@@ -36,28 +41,99 @@ cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2"
 # Read in denitrification rates from Town Creek DEA, 2023-01-31 sampling:
 # Non-mac users, use relative path. Mac users may be able to use relative or absolute path, depending on repo location.
 
-#denit_rates <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/20230131/TownCreek_RSC_DEA_20230131.csv") # absolute path
-denit_rates_WINTER <- read.csv("../data/20230131/TownCreek_RSC_DEA_20230131.csv") # relative path
+# Denitrification rates calculated using standard Peralta Lab excel workbook:
+denit_rates_March2024 <- read.csv("../data/LD_DenitCalcs_excelMethod.csv") # relative path
 
-# Read in denitrification rates from Town Creek DEA, 2023-03-29 sampling:
-#denit_rates_SPRING <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/20230329/TownCreek_RSC_DEA_20230329.csv") # absolute path
-denit_rates_SPRING <- read.csv("../data/20230329/TownCreek_RSC_DEA_20230329.csv") # relative path
+# Raw N2O ppms to be used in gasfluxes package calculations:
+LD_March24_rawN2O <- read.csv("../data/LD_Denit_rawN2O.csv")
 
-# Read in denitrification rates from Town Creek DEA, 2023-06-21 sampling:
-#denit_rates_SUMMER <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/20230621/TownCreek_RSC_DEA_20230621.csv") # absolute path
-denit_rates_SUMMER <- read.csv("../data/20230621/TownCreek_RSC_DEA_20230621.csv") # relative path
-
-# Read in denitrification rates from Town Creek DEA, 2023-12-05 sampling:
-denit_rates_FALL <- read.csv("../data/20231205/TownCreek_RSC_DEA_20231205.csv")
+# Design file with dry masses for correction of fluxes after calculation:
+design_DM <- read.csv("../data/design_dryMass.csv")
 ```
-```{r YSI data}
-# Read in GEOL Spring 2023 YSI data:
-#YSI_data <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/GEOL_TC_YSI_RdataSpring2023.csv") # absolute path
-YSI_data <- read.csv("../data/GEOL_TC_YSI_RdataSpring2023.csv") # relative path
 
-YSI_data <- YSI_data[,-c(19:20)] #Trim extra columns
-YSI_data <- YSI_data[-c(27:32),] # For now, get rid of sampling day with no values (22 March 2023)
+### Flux calculation
+
+```{r GHG flux wrangling}
+# Copy raw N2O to a new flux data frame:
+ghg_flux <- LD_March24_rawN2O
+
+# Wheaton bottle headspace is 61 mL, equal to 6.1 x 10^-5 m^3:
+ghg_flux$V <- 6.1e-05
+
+# Wheaton bottle area = .19 m^2, based on 5 cm diameter and A = (1/4)πd^2:
+ghg_flux$A <- 0.19
+
+# Define the replacement values for conversion of TimeStep to time in minutes:
+replacement_values <- c(T0 = 5, T1 = 70, T2 = 135, T3 = 200)
+
+# Add a new column 'time_min' with the corresponding replacement values
+ghg_flux <- ghg_flux %>%
+  mutate(time_min = replacement_values[as.character(TimeStep)])
+
+# Convert time in minutes to time in hours:
+ghg_flux$time <- (ghg_flux$time_min * (1/60))
+
+# Convert ppm to mg/m^3, based on https://www.cdc.gov/niosh/docs/2004-101/calc.html (based on 25°C and 1 atm):
+# y mg/m3 = (x ppm)(molar mass)/24.45
+  # 24.45 is the volume (liters) of a mole (gram molecular weight) of a gas or vapor when the pressure is at 1 atmosphere (760 torr or 760 mm Hg) and at 25°C
+
+# N2O mg/m3
+ghg_flux$C_n2o <-  ((ghg_flux$N2O_ppm * 44.013)/24.45) # molar mass of N2O = 44.013 g/mol
+
+# Need to account for sampling:
+  # Calculate mg N2O in 61 mL (6.1e-05 m^3):
+ghg_flux$mg_n2o_61mL <- (ghg_flux$C_n2o * 6.1e-05)
+
+  # Calculate mg N2O in 10 mL (1e-05 m^3):
+ghg_flux$mg_n2o_10mL <- (ghg_flux$C_n2o * 1e-05)
+
+  # Add 10ml mg onto subsequent 61 ml samples:
+
+# Compute mg_accum column within each series of T0 through T3
+ghg_flux <- ghg_flux %>%
+  group_by(TimeStep) %>%
+  mutate(mg_accum = mg_n2o_61mL + cumsum(ifelse(TimeStep == "T0", 0, mg_n2o_10mL))) %>%
+  ungroup()
+
+# Now take mg_accum (cumulative mg of N2O), and again divide it by head space volume to get mg/m^3:
+ghg_flux$C <- ghg_flux$mg_accum / 6.1e-05
+
+# Split off data frames for each greenhouse gas:
+n2o_flux_input <- ghg_flux %>%
+  dplyr::select(ID, V, A, time, C)
 ```
+
+```{r GHG flux calculation}
+n2o_flux.results <- gasfluxes(n2o_flux_input, method = c("linear","robust linear", "HMR", "NDFE"), plot = T)
+```
+
+```{r GHG flux results wrangling}
+# robust linear looks good here, so use all robust linear values.
+# Units for robust linear flux: mg N2O/m^2/h
+# Still need to divide by dry mass to get mg N2O/m^2/g DM/h
+
+n2o_flux_DM <- design_DM %>%
+  cbind(n2o_flux.results$ID, n2o_flux.results$robust.linear.f0)
+
+# Add unit information:
+n2o_flux_DM$f0_unit <- "mg N2O m^-2 h^-1"
+
+# Divide flux (f0) by dry mass (DM) to get denitrification rate in terms of mg N2O g DM^-1 h^-1:
+n2o_flux_DM$denit_mg <- (n2o_flux_DM$`n2o_flux.results$robust.linear.f0` / n2o_flux_DM$Dry_Mass)
+
+# Add denitrification rate unit column:
+n2o_flux_DM$denit_mg_unit <- "mg N2O m^-2 g DM^-1 h^-1"
+
+# Add in terms of ng N2O g DM^-1 h^-1 to compare with standard Peralta Lab method:
+n2o_flux_DM$denit_ng <- (n2o_flux_DM$denit_mg * 1e+06)
+
+# Add unit information for denit rate in ng:
+n2o_flux_DM$denit_ng_unit <- "ng N2O m^-2 g DM-1 hr-1"
+```
+
+
+### Other data
+
 ```{r}
 # Read in N species concentration data:
 #sediment_N <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/2023_SPRING_SUM_SoilKClExtracts.csv") # absolute path
@@ -67,6 +143,8 @@ sediment_N <- read.csv("../data/2023_SPRING_SUM_SoilKClExtracts.csv") # relative
 sediment_N_DM <- read.csv("../data/NH4_NOX_per_dryMass.csv")
 ```
 
+
+### Plots
 
 ```{r Summer with NO_ACET}
 plot.denit_rates_SUMMER <- ggplot(denit_rates_SUMMER, aes(x=RSC, y=Denitrification_rate)) +
