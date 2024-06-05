@@ -23,7 +23,7 @@ knitr::opts_knit$set(root.dir="~/GitHub/Denitrification_Enzyme_Assays/TownCreek/
 ```
 
 ```{r code dependencies}
-require("ggplot2"):require("tidyr"):require("ggpubr"):require("rstatix")
+require("ggplot2"):require("tidyr"):require("ggpubr"):require("rstatix"):require("stringr"):require("NSM3")
 ```
 
 ```{r Color-blind-friendly palette}
@@ -49,6 +49,10 @@ denit_rates_SUMMER <- read.csv("../data/20230621/TownCreek_RSC_DEA_20230621.csv"
 
 # Read in denitrification rates from Town Creek DEA, 2023-12-05 sampling:
 denit_rates_FALL <- read.csv("../data/20231205/TownCreek_RSC_DEA_20231205.csv")
+
+# Pre-RSC denitrification rates, May 26, 2015:
+denit_PRE <- read.delim("../data/PreRSC20150526/2015_TC_DEArate.txt")
+denit_PRE$Replicate <- as.factor(denit_PRE$Replicate)
 ```
 ```{r YSI data}
 # Read in GEOL Spring 2023 YSI data:
@@ -416,8 +420,26 @@ denit_combined$Season <- factor(denit_combined$Season, levels = c("Winter (31 Ja
 denit_combined_wSUMMER$Season <- factor(denit_combined_wSUMMER$Season, levels = c("Winter (31 January 2023)", "Spring (29 March 2023)", "Summer (21 June 2023)"))
 
 denit_combined_4Seasons$Season <- factor(denit_combined_4Seasons$Season, levels = c("Winter (31 January 2023)", "Spring (29 March 2023)", "Summer (21 June 2023)", "Fall (5 December 2023)"))
-
 ```
+
+```{r Combine Pre- and Post-RSC DEAs}
+# Select post-RSC columns for better overlap with pre-RSC columns:
+post_RSC_4merge <- denit_combined_4Seasons %>% dplyr::select(c("Sample_ID", "Water_column", "Denitrification_rate"))
+
+# Select denit_PRE columns for merging:
+denit_PRE_4merge <- denit_PRE %>% dplyr::select(c("IDCode", "Type", "Rate"))
+
+# Rename columns to match post_RSC:
+colnames(denit_PRE_4merge) <- colnames(post_RSC_4merge)
+
+# Add restoration pre/post column:
+post_RSC_4merge$restoration <- "POST"
+denit_PRE_4merge$restoration <- "PRE"
+
+# Combine pre and post:
+denit_PRE_POST <- rbind(denit_PRE_4merge, post_RSC_4merge)
+```
+
 
 ## DEA Stats
 
@@ -985,5 +1007,238 @@ plot.precip <- ggplot(precip_SpringSummer, aes(x=Date, y=X_00045_00006)) +
 plot.precip
 
 ggsave("../figures/precipSprSum.png", plot=plot.precip, device="png", path=NULL, scale=1, width=16, height=7, dpi=600, limitsize=TRUE, bg="white")
+```
+
+
+
+## Pre- and post-RSC
+
+```{r set factors and names}
+# set restoration levels:
+denit_PRE_POST$restoration <- denit_PRE_POST$restoration %>% factor(levels = c("PRE", "POST"))
+
+# Change water_column names to better labels:
+denit_PRE_POST$Water_column_Label <- denit_PRE_POST$Water_column %>% str_replace_all(c("W" = "water \n(PRE)", "BK" = "streambank \n(PRE)", "BD" = "streambed \n(PRE)", "dry" = "dry \n(POST)", "island" = "streambank \n(POST)", "submerged" = "streambed \n(POST)"))
+
+# set Water_column_Label factor levels:
+denit_PRE_POST$Water_column_Label <- denit_PRE_POST$Water_column_Label %>% factor(levels = c("water \n(PRE)", "streambank \n(PRE)", "streambed \n(PRE)", "dry \n(POST)", "streambank \n(POST)", "streambed \n(POST)"))
+```
+
+
+```{r Plotting pre and post RSC DEA}
+plot.denit_PRE_POST <- ggplot(denit_PRE_POST, aes(x=Water_column_Label, y=Denitrification_rate)) +
+                     geom_boxplot(outlier.shape = NA) +
+                     geom_point(aes(color=Water_column_Label, shape=restoration), size = 4, position = position_jitterdodge()) +
+  scale_color_manual(values=c("#0072B2","#009E73","#D55E00", "#E69F00", "#009E73", "#D55E00"), labels = c("water (PRE)", "streambank (PRE)", "streambed (PRE)", "dry (POST)", "streambank (POST)", "streambed (POST)"), name="") +
+  scale_shape_manual(values = c(16,17), labels = c("Pre-restoration", "Post-restoration"), name="")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.title.x = element_text(margin = margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="none", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "\nSample Type", y = expression(paste("Denitrification (ng N"[2],"O (g DM)"^-{1}," hr"^-{1},")")), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  #stat_compare_means(method = "wilcox.test", paired = F, label = "p.signif", label.y.npc = "center", label.x.npc = "center",size = 10, hide.ns = T)
+  
+ 
+plot.denit_PRE_POST
+```
+```{r create and extract legend}
+plot.denit_PRE_POST_LEG <- ggplot(denit_PRE_POST, aes(x=Water_column_Label, y=Denitrification_rate)) +
+                     geom_boxplot(outlier.shape = NA) +
+                     geom_point(aes(color=Water_column_Label, shape=Water_column_Label), size = 4, position = position_jitterdodge()) +
+  scale_color_manual(values=c("#0072B2","#009E73","#D55E00", "#E69F00", "#009E73", "#D55E00"), labels = c("water (PRE)", "streambank (PRE)", "streambed (PRE)", "dry (POST)", "streambank (POST)", "streambed (POST)"), name="Legend") +
+  scale_shape_manual(values = c(16,16,16,17,17,17), labels = c("water (PRE)", "streambank (PRE)", "streambed (PRE)", "dry (POST)", "streambank (POST)", "streambed (POST)"), name="Legend")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.title.x = element_text(margin = margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="right", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "\nSample Type", y = expression(paste("Denitrification (ng N"[2],"O (g DM)"^-{1}," hr"^-{1},")")), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+ 
+plot.denit_PRE_POST_LEG
+```
+### Pre and post RSC stats
+
+```{r ANOVAS prep}
+# https://www.datanovia.com/en/lessons/repeated-measures-anova-in-r/
+
+# Make sure factors are factors 
+```
+
+```{r ANOVA assumption testing: outliers}
+Outliers_PrePost <- denit_PRE_POST %>%
+  identify_outliers(Denitrification_rate)
+  # There are extreme outliers.
+```
+  
+```{r ANOVA assumption testing: normality}
+denit_PRE_POST %>%
+  shapiro_test(Denitrification_rate)
+  # Not normally distributed
+
+  # QQ plot:
+ggqqplot(denit_PRE_POST, "Denitrification_rate")
+
+# log transform:
+denit_PRE_POST$log_Denit <- log10(denit_PRE_POST$Denitrification_rate)
+
+denit_PRE_POST %>%
+  shapiro_test(log_Denit)
+  # Not normally distributed
+
+  # QQ plot:
+ggqqplot(denit_PRE_POST, "log_Denit")
+
+# log transformed data looks almost acceptable for parametric stats, but will use nonparametric approach for now, especially given unbalanced design
+```
+
+```{r Wilcoxon Rank Sum for PRE vs POST}
+wilcox_PrePost <- wilcox.test(data = denit_PRE_POST, Denitrification_rate ~ restoration, paired = F)
+wilcox_PrePost
+
+# post is significantly different from pre
+```
+
+```{r Kruskal-Wallis}
+# Will use DWASS-Steel-Critchlow-Fligner test for multiple comparisons, in package NSM3
+
+# Kruskal for overall differences:
+kruskal_DEA <- kruskal.test(data = denit_PRE_POST, Denitrification_rate ~ Water_column_Label)
+kruskal_DEA
+
+
+# Pairwise comparisons:
+SDCFlig_DEA<- pSDCFlig(x = denit_PRE_POST$Denitrification_rate, g = denit_PRE_POST$Water_column_Label, method = "Monte Carlo", n.mc = 10000)
+SDCFlig_DEA
+```
+
+```{r stats prep for plotting}
+# Kruskal-Wallis test on Water_column, and multiple comparisons:
+kruskal_DF_compMeans <- compare_means(Denitrification_rate~Water_column_Label, denit_PRE_POST, method = "kruskal.test")
+
+kruskal_DF_multComparisons <- compare_means(Denitrification_rate~Water_column_Label, denit_PRE_POST, method = "wilcox.test", p.adjust.method = "fdr")
+
+# Adjustments for plotting:
+kruskal_DF_multComparisons <- add_significance(kruskal_DF_multComparisons, p.col = "p.adj", output.col = "p.adj.signif", cutpoints = c(0, 1e-04, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))
+
+# Turn into data frame:
+kruskal_DF_multComparisons <- as.data.frame(kruskal_DF_multComparisons)
+
+# Add on SDCFlig p-values:
+kruskal_DF_multComparisons$SDCF_p <- SDCFlig_DEA$p.val
+
+# Symbols for plotting:
+kruskal_DF_multComparisons <- add_significance(kruskal_DF_multComparisons, p.col = "SDCF_p", output.col = "p.SDCF.signif", cutpoints = c(0, 1e-04, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))
+
+# Export the data frames to a .csv file
+#write.csv(CH4_MultComp.DF, file = "../figures/pub/tables/Kruskal_Treatment/multiple_comparisons/CH4_MultComp.csv", row.names = T)
+
+# try reduced data frame so as not to confuse stat_pval_manual:
+SDCFlig_Manual_DF <- kruskal_DF_multComparisons %>% dplyr::select(c(".y.", "group1", "group2", "SDCF_p", "p.SDCF.signif"))
+
+# rename columns to match stat_pval:
+colnames(SDCFlig_Manual_DF) <- c(".y.", "group1", "group2", "p", "p.signif")
+```
+
+```{r Plot with pairwise comparisons}
+plot.denit_PRE_POST_stats <- ggplot(denit_PRE_POST, aes(x=Water_column_Label, y=Denitrification_rate)) +
+                     geom_boxplot(outlier.shape = NA) +
+                     geom_point(aes(color=Water_column_Label, shape=Water_column_Label), size = 4, position = position_jitterdodge()) +
+  scale_color_manual(values=c("#0072B2","#009E73","#D55E00", "#E69F00", "#009E73", "#D55E00"), labels = c("water (PRE)", "streambank (PRE)", "streambed (PRE)", "dry (POST)", "streambank (POST)", "streambed (POST)"), name="Legend") +
+  scale_shape_manual(values = c(16,16,16,17,17,17), labels = c("water (PRE)", "streambank (PRE)", "streambed (PRE)", "dry (POST)", "streambank (POST)", "streambed (POST)"), name="Legend")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.title.x = element_text(margin = margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="right", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "\nSample Type", y = expression(paste("Denitrification (ng N"[2],"O (g DM)"^-{1}," hr"^-{1},")")), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))+
+  stat_pvalue_manual(data = SDCFlig_Manual_DF, label = "p.signif", size = 10, vjust = 1, hide.ns = T, y.position = (max(denit_PRE_POST$Denitrification_rate)), step.increase = 0.1)
+ 
+plot.denit_PRE_POST_stats
+```
+
+```{r Plot with Wilcox, pre vs. post}
+plot.denit_PRE_POST_Wilcox <- ggplot(denit_PRE_POST, aes(x=restoration, y=Denitrification_rate)) +
+                     geom_boxplot(outlier.shape = NA) +
+                     geom_point(aes(shape=restoration), size = 4, position = position_jitterdodge()) +
+  #scale_color_manual(values=c("#0072B2","#009E73","#D55E00", "#E69F00", "#009E73", "#D55E00"), labels = c("water (PRE)", "streambank (PRE)", "streambed (PRE)", "dry (POST)", "streambank (POST)", "streambed (POST)"), name="Legend") +
+  scale_shape_manual(values = c(16,17), labels = c("Pre-restoration","Post-restoration"), name="Legend")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.title.x = element_text(margin = margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="right", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "", y = expression(paste("Denitrification (ng N"[2],"O (g DM)"^-{1}," hr"^-{1},")")), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))+
+  stat_compare_means(method = "wilcox.test", paired = F, label = "p.signif", label.y.npc = "center", label.x.npc = "center", size = 10, hide.ns = T)
+ 
+plot.denit_PRE_POST_Wilcox
+```
+
+```{r}
+# make multcomp figure using letter symbols (A, AB, B, etc.)
+
+require("PMCMRplus")
+
+DSCF_PMCRMR <- dscfAllPairsTest(x = denit_PRE_POST$Denitrification_rate, g = denit_PRE_POST$Water_column_Label)
+DSCF_PMCRMR
+
+PMCMRplus::barPlot(DSCF_PMCRMR)
+
+
+# Add to df:
+denit_PRE_POST$cld <- denit_PRE_POST$Water_column %>% str_replace_all(c("W" = "a", "BK" = "b", "BD" = "b", "dry" = "b", "island" = "c", "submerged" = "c"))
+```
+
+```{r}
+plot.denit_PRE_POST_stats2 <- ggplot(denit_PRE_POST, aes(x=Water_column_Label, y=Denitrification_rate)) +
+                     geom_boxplot(outlier.shape = NA) +
+                     geom_point(aes(color=Water_column_Label, shape=Water_column_Label), size = 4, position = position_jitterdodge()) +
+  geom_text(data = denit_PRE_POST, aes(x=Water_column_Label, y=(max(Denitrification_rate)+200)), label = denit_PRE_POST$cld, size = 7)+
+  scale_color_manual(values=c("#0072B2","#009E73","#D55E00", "#E69F00", "#009E73", "#D55E00"), labels = c("water (PRE)", "streambank (PRE)", "streambed (PRE)", "dry (POST)", "streambank (POST)", "streambed (POST)"), name="Legend") +
+  scale_shape_manual(values = c(16,16,16,17,17,17), labels = c("water (PRE)", "streambank (PRE)", "streambed (PRE)", "dry (POST)", "streambank (POST)", "streambed (POST)"), name="Legend")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.title.x = element_text(margin = margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="right", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "\nSample Type", y = expression(paste("Denitrification (ng N"[2],"O (g DM)"^-{1}," hr"^-{1},")")), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+
+ 
+plot.denit_PRE_POST_stats2
 ```
 

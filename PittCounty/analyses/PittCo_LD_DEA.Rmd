@@ -173,7 +173,7 @@ denit_ACET_std <- dplyr::filter(denit_rates_March2024, denit_rates_March2024$Ace
 ```
 
 
-```{r plot ACET: Winter}
+```{r plot ACET: Standard calculation}
 plot.denit_rates_ACET_std<- ggplot(denit_ACET_std, aes(x=Field_location, y=Denitrification_rate)) +
                      geom_boxplot(outlier.shape = NA) +
                      geom_point(aes(shape=Acetylene), size = 3, position = position_jitterdodge()) +
@@ -186,17 +186,44 @@ plot.denit_rates_ACET_std<- ggplot(denit_ACET_std, aes(x=Field_location, y=Denit
           axis.title.y=element_text(margin=margin(r=10)),
           panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="none", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
+          labs(x = "", y = expression(paste("ng N"[2],"O g DM"^{-1}," hr"^{-1})), title="") +
   theme(rect=element_rect(fill="transparent"))+
   theme(plot.background = element_rect(color=NA))
   
  
 plot.denit_rates_ACET_std
 
-#ggsave("../figures/denit_v_salt_AcetOnly.tiff", plot=plot.denit_ACET, device="tiff", path=NULL, scale=1, width=10, height=7, dpi=600, limitsize=TRUE, bg="white")
+#ggsave("../figures/stnd_calc_comparison.tiff", plot=plot.denit_rates_ACET_std, device="tiff", path=NULL, scale=1, width=12, height=7, dpi=300, limitsize=TRUE, bg="white")
 
 #ggsave("../figures/denit_v_salt_AcetOnly.png", plot=plot.denit_ACET, device="png", path=NULL, scale=1, width=10, height=7, dpi=600, limitsize=TRUE, bg="white")
 ```
+
+```{r just north buffer and north field}
+# subset with only North Buffer and North Field:
+denit_ACET_NORTH <- denit_ACET_std[1:8,]
+
+
+plot.denit_rates_ACET_std<- ggplot(denit_ACET_NORTH, aes(x=Field_location, y=Denitrification_rate)) +
+                     geom_boxplot(outlier.shape = NA) +
+                     geom_point(aes(shape=Acetylene), size = 3, position = position_jitterdodge()) +
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="none", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "", y = expression(paste("ng N"[2],"O g DM"^{-1}," hr"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))
+  
+ 
+plot.denit_rates_ACET_std
+```
+
+
 
 ### DEA Stats
 
@@ -235,10 +262,10 @@ kruskal_CompMeans <- compare_means(Denitrification_rate~Field_location, denit_AC
 denit_multipleComparisons<- compare_means(Denitrification_rate~Field_location, denit_ACET_std, method = "wilcox.test", p.adjust.method = "fdr")
 
 # Adjustments for plotting:
-CH4_multipleComparisons <- add_significance(CH4_multipleComparisons, p.col = "p.adj", output.col = "p.adj.signif", cutpoints = c(0, 1e-04, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))
+denit_multipleComparisons <- add_significance(denit_multipleComparisons, p.col = "p.adj", output.col = "p.adj.signif", cutpoints = c(0, 1e-04, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))
 
 # Turn into data frame:
-DEA_wilcox_IslandvSub <- as.data.frame(DEA_wilcox_IslandvSub)
+DEA_multComp <- as.data.frame(denit_multipleComparisons)
 
 # Export the data frame to a .csv file
 #write.csv(CH4_wilcox, file = "../figures/pub/tables/Wilcox_NPvP/CH4_wilcox.csv", row.names = T)
