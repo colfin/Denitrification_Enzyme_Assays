@@ -195,31 +195,6 @@ plot.denit_WINTER_ACET_allFactors <- ggplot(denit_ACET_WINTER, aes(x=RSC, y=Deni
 plot.denit_WINTER_ACET_allFactors
 ```
 
-```{r check labelling}
-# Use this to check that scale_manuals don't label incorrectly:
-
-plot.denit_ACET_allFactors_SPRING <- ggplot(denit_SPRING_ACET, aes(x=RSC, y=Denitrification_rate)) +
-                     geom_boxplot(outlier.shape = NA) +
-                     geom_point(aes(shape=combined_pool_name, color=Water_column, fill = Water_column), size = 5, position = position_jitterdodge()) +
-  #scale_color_manual(values=c("#E69F00","#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level") +
-  #scale_shape_manual(values = c(24, 25, 24, 25), labels = c("Dry RSC, up", "Dry RSC, down", "In-stream RSC, up", "In-stream RSC, down"), name = "Sample Location")+
- # scale_fill_manual(values = c("#E69F00", "#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Stuff")+
-  theme_bw() +
-  #Remove plot grid lines
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  #Set axis title and text properties, tick marks, and labels
-  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
-          axis.text=element_text(size=14),  
-          axis.title.y=element_text(margin=margin(r=10)),
-          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="right", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
-          theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "RSC", y = expression(paste("ng N"[2],"O g"^{-1}," DM hr"^{-1})), title="") +
-  theme(rect=element_rect(fill="transparent"))+
-  theme(plot.background = element_rect(color=NA))
-  
- 
-plot.denit_ACET_allFactors_SPRING
-```
 
 ```{r SPRING all factors}
 plot.denit_ACET_allFactors_SPRING_2 <- ggplot(denit_SPRING_ACET, aes(x=RSC, y=Denitrification_rate)) +
@@ -448,10 +423,10 @@ denit_PRE_POST <- rbind(denit_PRE_4merge, post_RSC_4merge)
 Outliers_DEA <- denit_combined_4Seasons %>%
   group_by(Season) %>%
   identify_outliers(Denitrification_rate)
-  # There are extreme outliers. Could run with and without outliers.
+Outliers_DEA
+  # There are extreme outliers.
 
 # Normality:
-# CH4 PPM
 denit_combined_4Seasons %>%
   group_by(Season) %>%
   shapiro_test(Denitrification_rate)
@@ -1082,6 +1057,7 @@ plot.denit_PRE_POST_LEG
 ```{r ANOVA assumption testing: outliers}
 Outliers_PrePost <- denit_PRE_POST %>%
   identify_outliers(Denitrification_rate)
+Outliers_PrePost
   # There are extreme outliers.
 ```
   
@@ -1122,7 +1098,7 @@ kruskal_DEA
 
 
 # Pairwise comparisons:
-SDCFlig_DEA<- pSDCFlig(x = denit_PRE_POST$Denitrification_rate, g = denit_PRE_POST$Water_column_Label, method = "Monte Carlo", n.mc = 10000)
+SDCFlig_DEA<- pSDCFlig(x = denit_PRE_POST$Denitrification_rate, g = denit_PRE_POST$Water_column_Label, method = "Monte Carlo", n.mc = 1000)
 SDCFlig_DEA
 ```
 
@@ -1194,7 +1170,7 @@ plot.denit_PRE_POST_Wilcox <- ggplot(denit_PRE_POST, aes(x=restoration, y=Denitr
           axis.title.x = element_text(margin = margin(r=10)),
           panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="right", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "", y = expression(paste("Denitrification (ng N"[2],"O (g DM)"^-{1}," hr"^-{1},")")), title="") +
+          labs(x = "", y = expression(paste("ng N"[2],"O (g DM)"^-{1}," hr"^-{1})), title="") +
   theme(rect=element_rect(fill="transparent"))+
   theme(plot.background = element_rect(color=NA))+
   stat_compare_means(method = "wilcox.test", paired = F, label = "p.signif", label.y.npc = "center", label.x.npc = "center", size = 10, hide.ns = T)
@@ -1202,7 +1178,17 @@ plot.denit_PRE_POST_Wilcox <- ggplot(denit_PRE_POST, aes(x=restoration, y=Denitr
 plot.denit_PRE_POST_Wilcox
 ```
 
-```{r}
+```{r extract and save legend}
+# remove legend from above figure, extract legend and save
+leg2 <- get_legend(plot.denit_PRE_POST_Wilcox, position = "right") #Extract legend as a legend Grob
+legend_plot2 <- as_ggplot(leg2) #Asign the grob as a ggplot
+legend_plot2 #View the plot
+
+#ggsave("../figures/ASM2024/Legend_pre_post_wilcox.png", plot=legend_plot2, device="png", path=NULL, scale=1, dpi=300, limitsize=TRUE, bg="white")
+```
+
+
+```{r compact letter display for multiple comparisons}
 # make multcomp figure using letter symbols (A, AB, B, etc.)
 
 require("PMCMRplus")
@@ -1217,11 +1203,11 @@ PMCMRplus::barPlot(DSCF_PMCRMR)
 denit_PRE_POST$cld <- denit_PRE_POST$Water_column %>% str_replace_all(c("W" = "a", "BK" = "b", "BD" = "b", "dry" = "b", "island" = "c", "submerged" = "c"))
 ```
 
-```{r}
+```{r all groups pre post with CLD}
 plot.denit_PRE_POST_stats2 <- ggplot(denit_PRE_POST, aes(x=Water_column_Label, y=Denitrification_rate)) +
                      geom_boxplot(outlier.shape = NA) +
-                     geom_point(aes(color=Water_column_Label, shape=Water_column_Label), size = 4, position = position_jitterdodge()) +
-  geom_text(data = denit_PRE_POST, aes(x=Water_column_Label, y=(max(Denitrification_rate)+200)), label = denit_PRE_POST$cld, size = 7)+
+                     geom_point(aes(color=Water_column_Label, shape=Water_column_Label), size = 6, position = position_jitterdodge()) +
+  geom_text(data = denit_PRE_POST, aes(x=Water_column_Label, y= 4000), label = denit_PRE_POST$cld, size = 8)+
   scale_color_manual(values=c("#0072B2","#009E73","#D55E00", "#E69F00", "#009E73", "#D55E00"), labels = c("water (PRE)", "streambank (PRE)", "streambed (PRE)", "dry (POST)", "streambank (POST)", "streambed (POST)"), name="Legend") +
   scale_shape_manual(values = c(16,16,16,17,17,17), labels = c("water (PRE)", "streambank (PRE)", "streambed (PRE)", "dry (POST)", "streambank (POST)", "streambed (POST)"), name="Legend")+
   theme_bw() +
@@ -1234,11 +1220,29 @@ plot.denit_PRE_POST_stats2 <- ggplot(denit_PRE_POST, aes(x=Water_column_Label, y
           axis.title.x = element_text(margin = margin(r=10)),
           panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="right", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "\nSample Type", y = expression(paste("Denitrification (ng N"[2],"O (g DM)"^-{1}," hr"^-{1},")")), title="") +
+          labs(x = "\nSample Type and Restoration Status", y = expression(paste("ng N"[2],"O (g DM)"^-{1}," hr"^-{1})), title="") +
   theme(rect=element_rect(fill="transparent"))+
   theme(plot.background = element_rect(color=NA))
 
  
 plot.denit_PRE_POST_stats2
+```
+
+```{r extract and save legend}
+# remove legend from above figure, extract legend and save
+leg3 <- get_legend(plot.denit_PRE_POST_stats2, position = "right") #Extract legend as a legend Grob
+legend_plot3 <- as_ggplot(leg3) #Asign the grob as a ggplot
+legend_plot3 #View the plot
+
+#ggsave("../figures/ASM2024/Legend_ALL_pre_post_CLD.png", plot=legend_plot3, device="png", path=NULL, scale=1, dpi=300, limitsize=TRUE, bg="white")
+```
+
+```{r panel}
+# 2 panel figure, pre-post on the left, all groups on the right
+plot.pre_post_2_panel <- ggarrange(plot.denit_PRE_POST_Wilcox, plot.denit_PRE_POST_stats2, ncol = 1, nrow = 2, labels = c("(a)", "(b)"), legend = "none", align = "hv")
+
+plot.pre_post_2_panel
+
+#ggsave("../figures/ASM2024/DEA_prePost_2Panel.png", plot=plot.pre_post_2_panel, device="png", path=NULL, scale=1, width=12, height=10, dpi=600, limitsize=TRUE, bg="white")
 ```
 
