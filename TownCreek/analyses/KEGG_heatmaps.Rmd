@@ -1,0 +1,185 @@
+---
+title: "KEGG_heatmaps"
+author: "CF"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Setup
+
+```{r}
+# Clear environment:
+rm(list=ls())
+
+# Set working directories ----
+setwd('~/GitHub/Denitrification_Enzyme_Assays/TownCreek/analyses')
+
+# Load libraries ----
+# Tidyverse packages
+library(dplyr)
+library(purrr)
+library(tidyr)
+library(readr)
+library(stringr)
+library(tibble)
+
+# Colour package
+library(viridis)
+
+# Install 'pathview' package (part of Bioconductor)
+if (!require(BiocManager)) {
+  install.packages("BiocManager")
+  BiocManager::install("pathview", update = FALSE)
+}
+
+# Install 'KEGGREST' package (part of Bioconductor)
+if (!require(BiocManager)) {
+  install.packages("BiocManager")
+  BiocManager::install("KEGGREST", update = FALSE)
+}
+
+# KEGG maps
+library(pathview)
+library(KEGGREST)
+```
+
+```{r read in data}
+TC_IS_029 <- read.delim("../data/MetaG/TC_RSC_029_query.ko.txt", header = F)
+TC_Dr_043 <- read.delim("../data/MetaG/TC_RSC_043_query.ko.txt", header = F)
+```
+
+```{r}
+# Set colnames:
+colnames(TC_IS_029) <- c("Query Gene", "KO")
+colnames(TC_Dr_043) <- c("Query Gene", "KO")
+```
+
+```{r Tally KO hits}
+KO_hits_029 <- TC_IS_029 %>% 
+  group_by(KO) %>%
+  tally(name = "hits")
+
+KO_hits_043 <- TC_Dr_043 %>% 
+  group_by(KO) %>%
+  tally(name = "hits")
+```
+
+```{r Identify KEGG map}
+keggFind(database = "pathway", query = "Nitrogen")
+
+# We find the map ID is 00910 and assign it to an object.
+N_metab_map_id <- "00910"
+```
+
+```{r}
+KO_hits_029$sampleID <- "TC_RSC_IS_029"
+
+# Remove column with KO total:
+KO_hits_029 <- KO_hits_029[-1,]
+
+KO_matrix_029 <- pivot_wider(
+  KO_hits_029,
+  names_from = "sampleID", 
+  values_from = "hits", 
+  values_fill = NA
+) %>% 
+  column_to_rownames("KO") %>% 
+  as.matrix()
+
+KO_hits_043$sampleID <- "TC_RSC_Dr_043"
+
+# Remove column with KO total:
+KO_hits_043 <- KO_hits_043[-1,]
+
+KO_matrix_043 <- pivot_wider(
+  KO_hits_043,
+  names_from = "sampleID", 
+  values_from = "hits", 
+  values_fill = NA
+) %>% 
+  column_to_rownames("KO") %>% 
+  as.matrix()
+```
+
+```{r bad pathway map}
+pv_bin_029 <- pathview(
+  gene.data = KO_matrix_029[, "TC_RSC_IS_O29"],
+  pathway.id = N_metab_map_id,
+  species = "ko",
+  out.suffix = "pv_bin_029"
+)
+```
+
+```{r}
+# Set colours
+path_colours <- viridis(n = 3, begin = 0.65, end = 1, direction = 1)
+
+# For more information on the viridis package: 
+# vignette("intro-to-viridis")
+
+# Plot pathway, 029:
+pv_bin_029 <- pathview(
+  gene.data = KO_matrix_029[, "TC_RSC_IS_029"],
+  pathway.id = N_metab_map_id,
+  species = "ko",
+  # Lets make an arbitrary assumption that 5 copies is a lot
+  limit = list(
+    gene = c(1,5),
+    cpd = c(1,5)
+  ),
+  bins = list(
+    gene = 4,
+    cpd = 4
+  ),
+  # We are plotting number of hits, so specify TRUE for this
+  # If plotting, say, gene/transcript abundance, set this to FALSE
+  discrete = list(
+    gene = TRUE,
+    cpd = TRUE
+  ),
+  # Tally colours
+  low = path_colours[1],
+  mid = path_colours[2],
+  high = path_colours[3],
+  out.suffix = "pv_029"
+)
+
+
+# Plot pathway, 043:
+pv_bin_043 <- pathview(
+  gene.data = KO_matrix_043[, "TC_RSC_Dr_043"],
+  pathway.id = N_metab_map_id,
+  species = "ko",
+  # Lets make an arbitrary assumption that 5 copies is a lot
+  limit = list(
+    gene = c(1,5),
+    cpd = c(1,5)
+  ),
+  bins = list(
+    gene = 4,
+    cpd = 4
+  ),
+  # We are plotting number of hits, so specify TRUE for this
+  # If plotting, say, gene/transcript abundance, set this to FALSE
+  discrete = list(
+    gene = TRUE,
+    cpd = TRUE
+  ),
+  # Tally colours
+  low = path_colours[1],
+  mid = path_colours[2],
+  high = path_colours[3],
+  out.suffix = "pv_043"
+)
+
+```
+
+
+
+
+
+
