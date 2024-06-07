@@ -45,6 +45,9 @@ if (!require(BiocManager)) {
 # KEGG maps
 library(pathview)
 library(KEGGREST)
+
+# Relative abundance
+require("funrar")
 ```
 
 ```{r read in data}
@@ -81,6 +84,7 @@ KO_hits_029$sampleID <- "TC_RSC_IS_029"
 # Remove column with KO total:
 KO_hits_029 <- KO_hits_029[-1,]
 
+# Hit matrix
 KO_matrix_029 <- pivot_wider(
   KO_hits_029,
   names_from = "sampleID", 
@@ -90,11 +94,21 @@ KO_matrix_029 <- pivot_wider(
   column_to_rownames("KO") %>% 
   as.matrix()
 
+# Transpose for make_relative()
+RA_input_029 <- t(KO_matrix_029)
+# Convert counts to relative abundance
+RA_output_029 <- make_relative(RA_input_029)
+# Transpose again
+RA_output_029 <- t(RA_output_029)
+
+
+# Sample 043:
 KO_hits_043$sampleID <- "TC_RSC_Dr_043"
 
 # Remove column with KO total:
 KO_hits_043 <- KO_hits_043[-1,]
 
+# Hit matrix:
 KO_matrix_043 <- pivot_wider(
   KO_hits_043,
   names_from = "sampleID", 
@@ -103,6 +117,13 @@ KO_matrix_043 <- pivot_wider(
 ) %>% 
   column_to_rownames("KO") %>% 
   as.matrix()
+
+# Transpose for make_relative()
+RA_input_043 <- t(KO_matrix_043)
+# Convert counts to relative abundance
+RA_output_043 <- make_relative(RA_input_043)
+# Transpose again
+RA_output_043 <- t(RA_output_043)
 ```
 
 ```{r bad pathway map}
@@ -114,7 +135,7 @@ pv_bin_029 <- pathview(
 )
 ```
 
-```{r}
+```{r Pathway maps COUNT}
 # Set colours
 path_colours <- viridis(n = 3, begin = 0.65, end = 1, direction = 1)
 
@@ -179,7 +200,69 @@ pv_bin_043 <- pathview(
 ```
 
 
+```{r Pathway maps RA}
+# Set colours
+path_colours <- viridis(n = 3, begin = 0.65, end = 1, direction = 1)
 
+# For more information on the viridis package: 
+# vignette("intro-to-viridis")
+
+# Plot pathway, 029:
+pv_bin_029_RA <- pathview(
+  gene.data = RA_output_029[, "TC_RSC_IS_029"],
+  pathway.id = N_metab_map_id,
+  species = "ko",
+  # Range: minimum relative abundance to median relative abundance:
+  limit = list(
+    gene = c(0, 0.0001),
+    cpd = c(0, 0.0001)
+  ),
+  bins = list(
+    gene = 5,
+    cpd = 5
+  ),
+  # We are plotting number of hits, so specify TRUE for this
+  # If plotting, say, gene/transcript abundance, set this to FALSE
+  discrete = list(
+    gene = F,
+    cpd = F
+  ),
+  # Tally colours
+  low = path_colours[1],
+  mid = path_colours[2],
+  high = path_colours[3],
+  out.suffix = "pv_029_RA"
+)
+
+
+# Plot pathway, 043:
+pv_bin_043_RA <- pathview(
+  gene.data = RA_output_043[, "TC_RSC_Dr_043"],
+  pathway.id = N_metab_map_id,
+  species = "ko",
+  # Range: minimum relative abundance to median relative abundance:
+  limit = list(
+    gene = c(0, 0.0001),
+    cpd = c(0, 0.0001)
+  ),
+  bins = list(
+    gene = 5,
+    cpd = 5
+  ),
+  # We are plotting number of hits, so specify TRUE for this
+  # If plotting, say, gene/transcript abundance, set this to FALSE
+  discrete = list(
+    gene = F,
+    cpd = F
+  ),
+  # Tally colours
+  low = path_colours[1],
+  mid = path_colours[2],
+  high = path_colours[3],
+  out.suffix = "pv_043_RA"
+)
+
+```
 
 
 
