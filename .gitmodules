@@ -1,0 +1,3 @@
+[submodule "TownCreek/StormwaterDenitrification_Bean2015_submodule"]
+	path = TownCreek/StormwaterDenitrification_Bean2015_submodule
+	url = https://github.com/colfin/StormwaterDenitrification.git
