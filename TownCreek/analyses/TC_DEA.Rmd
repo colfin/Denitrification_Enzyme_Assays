@@ -1157,23 +1157,23 @@ plot.denit_PRE_POST_stats
 ```{r Plot with Wilcox, pre vs. post}
 plot.denit_PRE_POST_Wilcox <- ggplot(denit_PRE_POST, aes(x=restoration, y=Denitrification_rate)) +
                      geom_boxplot(outlier.shape = NA) +
-                     geom_point(aes(shape=restoration), size = 4, position = position_jitterdodge()) +
+                     geom_point(aes(shape=restoration), size = 8, position = position_jitterdodge()) +
   #scale_color_manual(values=c("#0072B2","#009E73","#D55E00", "#E69F00", "#009E73", "#D55E00"), labels = c("water (PRE)", "streambank (PRE)", "streambed (PRE)", "dry (POST)", "streambank (POST)", "streambed (POST)"), name="Legend") +
   scale_shape_manual(values = c(16,17), labels = c("Pre-restoration","Post-restoration"), name="Legend")+
   theme_bw() +
   #Remove plot grid lines
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
   #Set axis title and text properties, tick marks, and labels
-  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
-          axis.text=element_text(size=20),  
+  theme(text=element_text(size=40),axis.title=element_text(size=40,face="bold"),
+          axis.text=element_text(size=40),  
           axis.title.y=element_text(margin=margin(r=10)),
           axis.title.x = element_text(margin = margin(r=10)),
-          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="right", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 40), legend.position="right", legend.title = element_text(size=40), legend.text=element_text(size=40)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
           labs(x = "", y = expression(paste("ng N"[2],"O (g DM)"^-{1}," hr"^-{1})), title="") +
   theme(rect=element_rect(fill="transparent"))+
   theme(plot.background = element_rect(color=NA))+
-  stat_compare_means(method = "wilcox.test", paired = F, label = "p.signif", label.y.npc = "center", label.x.npc = "center", size = 10, hide.ns = T)
+  stat_compare_means(method = "wilcox.test", paired = F, label = "p.signif", label.y.npc = "center", label.x.npc = "center", size = 12, hide.ns = T)
  
 plot.denit_PRE_POST_Wilcox
 ```
@@ -1185,6 +1185,8 @@ legend_plot2 <- as_ggplot(leg2) #Asign the grob as a ggplot
 legend_plot2 #View the plot
 
 #ggsave("../figures/ASM2024/Legend_pre_post_wilcox.png", plot=legend_plot2, device="png", path=NULL, scale=1, dpi=300, limitsize=TRUE, bg="white")
+
+#ggsave("../../../../Desktop/ASM_2024_creativeCloud/CurrentPosterDraft/BiggerRFigs/WilcoxLegend", plot=legend_plot2, device="png", path=NULL, scale=1, dpi=300, limitsize=TRUE, bg="white")
 ```
 
 
@@ -1206,19 +1208,19 @@ denit_PRE_POST$cld <- denit_PRE_POST$Water_column %>% str_replace_all(c("W" = "a
 ```{r all groups pre post with CLD}
 plot.denit_PRE_POST_stats2 <- ggplot(denit_PRE_POST, aes(x=Water_column_Label, y=Denitrification_rate)) +
                      geom_boxplot(outlier.shape = NA) +
-                     geom_point(aes(color=Water_column_Label, shape=Water_column_Label), size = 6, position = position_jitterdodge()) +
-  geom_text(data = denit_PRE_POST, aes(x=Water_column_Label, y= 4000), label = denit_PRE_POST$cld, size = 8)+
+                     geom_point(aes(color=Water_column_Label, shape=Water_column_Label), size = 8, position = position_jitterdodge()) +
+  geom_text(data = denit_PRE_POST, aes(x=Water_column_Label, y= 4000), label = denit_PRE_POST$cld, size=12)+
   scale_color_manual(values=c("#0072B2","#009E73","#D55E00", "#E69F00", "#009E73", "#D55E00"), labels = c("water (PRE)", "streambank (PRE)", "streambed (PRE)", "dry (POST)", "streambank (POST)", "streambed (POST)"), name="Legend") +
   scale_shape_manual(values = c(16,16,16,17,17,17), labels = c("water (PRE)", "streambank (PRE)", "streambed (PRE)", "dry (POST)", "streambank (POST)", "streambed (POST)"), name="Legend")+
   theme_bw() +
   #Remove plot grid lines
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
   #Set axis title and text properties, tick marks, and labels
-  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
-          axis.text=element_text(size=20),  
+  theme(text=element_text(size=40),axis.title=element_text(size=40,face="bold"),
+          axis.text=element_text(size=40),  
           axis.title.y=element_text(margin=margin(r=10)),
           axis.title.x = element_text(margin = margin(r=10)),
-          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="right", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 40), legend.position="right", legend.title = element_text(size=40), legend.text=element_text(size=40)) + 
           theme(axis.ticks.length=unit(0.3,"cm")) + 
           labs(x = "\nSample Type and Restoration Status", y = expression(paste("ng N"[2],"O (g DM)"^-{1}," hr"^-{1})), title="") +
   theme(rect=element_rect(fill="transparent"))+
@@ -1235,14 +1237,18 @@ legend_plot3 <- as_ggplot(leg3) #Asign the grob as a ggplot
 legend_plot3 #View the plot
 
 #ggsave("../figures/ASM2024/Legend_ALL_pre_post_CLD.png", plot=legend_plot3, device="png", path=NULL, scale=1, dpi=300, limitsize=TRUE, bg="white")
+
+ggsave("../../../../Desktop/ASM_2024_creativeCloud/CurrentPosterDraft/BiggerRFigs/CLDLegend", plot=legend_plot2, device="png", path=NULL, scale=1, dpi=300, limitsize=TRUE, bg="white")
 ```
 
 ```{r panel}
 # 2 panel figure, pre-post on the left, all groups on the right
-plot.pre_post_2_panel <- ggarrange(plot.denit_PRE_POST_Wilcox, plot.denit_PRE_POST_stats2, ncol = 1, nrow = 2, labels = c("(a)", "(b)"), legend = "none", align = "hv")
+plot.pre_post_2_panel <- ggarrange(plot.denit_PRE_POST_Wilcox, plot.denit_PRE_POST_stats2, ncol = 1, nrow = 2, legend = "none", align = "hv")
 
 plot.pre_post_2_panel
 
-#ggsave("../figures/ASM2024/DEA_prePost_2Panel.png", plot=plot.pre_post_2_panel, device="png", path=NULL, scale=1, width=12, height=10, dpi=600, limitsize=TRUE, bg="white")
+#ggsave("../figures/ASM2024/DEA_prePost_2Panel.png", plot=plot.pre_post_2_panel, device="png", path=NULL, scale=1, width=15, height=12, dpi=600, limitsize=TRUE, bg="white")
+
+#ggsave("../../../../Desktop/ASM_2024_creativeCloud/CurrentPosterDraft/BiggerRFigs/DEA_prePost_2Panel.png", plot=plot.pre_post_2_panel, device="png", path=NULL, scale=1, width=20, height=15, dpi=600, limitsize=TRUE, bg="white")
 ```
 
