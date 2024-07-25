@@ -48,6 +48,14 @@ library(KEGGREST)
 
 # Relative abundance
 require("funrar")
+
+# Fix package loading, 7/24/2024:
+install.packages("BiocManager")
+library(BiocManager)
+BiocManager::install("pathview", update = FALSE) # change to = TRUE?
+BiocManager::install("KEGGREST", update = FALSE)
+library(pathview)
+library(KEGGREST)
 ```
 
 ```{r read in data}
