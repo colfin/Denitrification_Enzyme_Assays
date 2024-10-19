@@ -30,30 +30,15 @@ library(tibble)
 # Colour package
 library(viridis)
 
-# Install 'pathview' package (part of Bioconductor)
-if (!require(BiocManager)) {
-  install.packages("BiocManager")
-  BiocManager::install("pathview", update = FALSE)
-}
-
-# Install 'KEGGREST' package (part of Bioconductor)
-if (!require(BiocManager)) {
-  install.packages("BiocManager")
-  BiocManager::install("KEGGREST", update = FALSE)
-}
-
-# KEGG maps
-library(pathview)
-library(KEGGREST)
 
 # Relative abundance
 require("funrar")
 
 # Fix package loading, 7/24/2024:
-install.packages("BiocManager")
+#install.packages("BiocManager")
 library(BiocManager)
-BiocManager::install("pathview", update = FALSE) # change to = TRUE?
-BiocManager::install("KEGGREST", update = FALSE)
+#BiocManager::install("pathview", update = FALSE) # change to = TRUE?
+#BiocManager::install("KEGGREST", update = FALSE)
 library(pathview)
 library(KEGGREST)
 ```
@@ -61,12 +46,18 @@ library(KEGGREST)
 ```{r read in data}
 TC_IS_029 <- read.delim("../data/MetaG/TC_RSC_029_query.ko.txt", header = F)
 TC_Dr_043 <- read.delim("../data/MetaG/TC_RSC_043_query.ko.txt", header = F)
+
+TCP_003_004 <- read.delim("../data/MetaG/KEGG_hits_betterDownload.ko.txt", header = F)
+TCP_Bin2_Aeromonas <- read.delim("../data/MetaG/KEGG_hits_betterDownload.ko.txt", header = F)
 ```
 
 ```{r}
 # Set colnames:
 colnames(TC_IS_029) <- c("Query Gene", "KO")
 colnames(TC_Dr_043) <- c("Query Gene", "KO")
+
+colnames(TCP_003_004) <- c("Query Gene", "KO")
+colnames(TCP_Bin2_Aeromonas) <- c("Query Gene", "KO")
 ```
 
 ```{r Tally KO hits}
@@ -77,6 +68,14 @@ KO_hits_029 <- TC_IS_029 %>%
 KO_hits_043 <- TC_Dr_043 %>% 
   group_by(KO) %>%
   tally(name = "hits")
+
+KO_hits_TCP_003_004 <- TCP_003_004 %>% 
+  group_by(KO) %>%
+  tally(name = "hits")
+
+KO_hits_TCP_Bin2_Aeromonas <- TCP_Bin2_Aeromonas %>% 
+  group_by(KO) %>%
+  tally(name = "hits")
 ```
 
 ```{r Identify KEGG map}
@@ -84,6 +83,10 @@ keggFind(database = "pathway", query = "Nitrogen")
 
 # We find the map ID is 00910 and assign it to an object.
 N_metab_map_id <- "00910"
+
+C_metab_map_id <- "01200"
+
+TCA_map_id <- "00020"
 
 keggFind(database = "module", query = "Denitrification")
 
@@ -136,6 +139,53 @@ RA_input_043 <- t(KO_matrix_043)
 RA_output_043 <- make_relative(RA_input_043)
 # Transpose again
 RA_output_043 <- t(RA_output_043)
+
+# TC Plate data:
+KO_hits_TCP_003_004$sampleID <- "TC_RSC_IS_TCP_003_004"
+
+# Remove column with KO total:
+KO_hits_TCP_003_004 <- KO_hits_TCP_003_004[-1,]
+
+# Hit matrix
+KO_matrix_TCP_003_004 <- pivot_wider(
+  KO_hits_TCP_003_004,
+  names_from = "sampleID", 
+  values_from = "hits", 
+  values_fill = NA
+) %>% 
+  column_to_rownames("KO") %>% 
+  as.matrix()
+
+# Transpose for make_relative()
+RA_input_TCP_003_004 <- t(KO_matrix_TCP_003_004)
+# Convert counts to relative abundance
+RA_output_TCP_003_004 <- make_relative(RA_input_TCP_003_004)
+# Transpose again
+RA_output_TCP_003_004 <- t(RA_output_TCP_003_004)
+
+
+# TC Plate data, Bin2, Aeromonas:
+KO_hits_TCP_Bin2_Aeromonas$sampleID <- "TCP_Bin2_Aeromonas"
+
+# Remove column with KO total:
+KO_hits_TCP_Bin2_Aeromonas <- KO_hits_TCP_Bin2_Aeromonas[-1,]
+
+# Hit matrix
+KO_matrix_TCP_Bin2_Aeromonas <- pivot_wider(
+  KO_hits_TCP_Bin2_Aeromonas,
+  names_from = "sampleID", 
+  values_from = "hits", 
+  values_fill = NA
+) %>% 
+  column_to_rownames("KO") %>% 
+  as.matrix()
+
+# Transpose for make_relative()
+RA_input_TCP_Bin2_Aeromonas <- t(KO_matrix_TCP_Bin2_Aeromonas)
+# Convert counts to relative abundance
+RA_output_TCP_Bin2_Aeromonas <- make_relative(RA_input_TCP_Bin2_Aeromonas)
+# Transpose again
+RA_output_TCP_Bin2_Aeromonas <- t(RA_output_TCP_Bin2_Aeromonas)
 ```
 
 ```{r bad pathway map}
@@ -276,5 +326,148 @@ pv_bin_043_RA <- pathview(
 
 ```
 
+```{r Pathway maps RA C metabolim Plate}
+# Set colours
+path_colours <- viridis(n = 3, begin = 0.15, end = 1, direction = 1)
 
+# For more information on the viridis package: 
+# vignette("intro-to-viridis")
+
+# Plot TCA, 003 and 004 combined:
+pv_bin_TCP_003_004_RA <- pathview(
+  gene.data = RA_output_TCP_003_004[, "TC_RSC_IS_TCP_003_004"],
+  pathway.id = TCA_map_id,
+  species = "ko",
+  # Range: minimum relative abundance to median relative abundance:
+  limit = list(
+    gene = c(min(RA_output_TCP_003_004), max(RA_output_TCP_003_004)),
+    cpd = c(min(RA_output_TCP_003_004), max(RA_output_TCP_003_004))
+  ),
+  bins = list(
+    gene = 5,
+    cpd = 5
+  ),
+  # We are plotting number of hits, so specify TRUE for this
+  # If plotting, say, gene/transcript abundance, set this to FALSE
+  discrete = list(
+    gene = F,
+    cpd = F
+  ),
+  # Tally colours
+  low = path_colours[1],
+  mid = path_colours[2],
+  high = path_colours[3],
+  out.suffix = "pv_TCP_003_004_RA_C_Metab"
+)
+
+
+# Plot pathway, 043:
+pv_bin_043_RA <- pathview(
+  gene.data = RA_output_043[, "TC_RSC_Dr_043"],
+  pathway.id = N_metab_map_id,
+  species = "ko",
+  # Range: minimum relative abundance to median relative abundance:
+  limit = list(
+    gene = c(min(RA_output_TCP_003_004), 0.001),
+    cpd = c(min(RA_output_TCP_003_004), 0.001)
+  ),
+  bins = list(
+    gene = 5,
+    cpd = 5
+  ),
+  # We are plotting number of hits, so specify TRUE for this
+  # If plotting, say, gene/transcript abundance, set this to FALSE
+  discrete = list(
+    gene = F,
+    cpd = F
+  ),
+  # Tally colours
+  low = path_colours[1],
+  mid = path_colours[2],
+  high = path_colours[3],
+  out.suffix = "pv_043_RA"
+)
+
+```
+
+```{r Pathway maps RA TCA cycle Bin2 Aeromonas}
+# Set colours
+path_colours <- viridis(n = 3, begin = 0.15, end = 1, direction = 1)
+
+# For more information on the viridis package: 
+# vignette("intro-to-viridis")
+
+# Plot TCA, Bin2:
+pv_bin_TCP_Bin2_Aeromonas_RA <- pathview(
+  gene.data = RA_output_TCP_Bin2_Aeromonas[, "TCP_Bin2_Aeromonas"],
+  pathway.id = TCA_map_id,
+  species = "ko",
+  # Range: minimum relative abundance to median relative abundance:
+  limit = list(
+    gene = c(min(RA_output_TCP_Bin2_Aeromonas), max(RA_output_TCP_Bin2_Aeromonas)),
+    cpd = c(min(RA_output_TCP_Bin2_Aeromonas), max(RA_output_TCP_Bin2_Aeromonas))
+  ),
+  bins = list(
+    gene = 5,
+    cpd = 5
+  ),
+  # We are plotting number of hits, so specify TRUE for this
+  # If plotting, say, gene/transcript abundance, set this to FALSE
+  discrete = list(
+    gene = F,
+    cpd = F
+  ),
+  # Tally colours
+  low = path_colours[1],
+  mid = path_colours[2],
+  high = path_colours[3],
+  out.suffix = "pv_TCP_Bin2_RA_TCA"
+)
+```
+
+
+```{r}
+pv_bin_TCP_Bin2_Aeromonas_RA <- pathview(
+  gene.data = RA_output_TCP_Bin2_Aeromonas[, "TCP_Bin2_Aeromonas"],
+  pathway.id = TCA_map_id,
+  species = "ko",
+  # Range: minimum relative abundance to median relative abundance:
+  limit = list(
+    gene = c(min(RA_output_TCP_Bin2_Aeromonas), max(RA_output_TCP_Bin2_Aeromonas)),
+    cpd = c(min(RA_output_TCP_Bin2_Aeromonas), max(RA_output_TCP_Bin2_Aeromonas))
+  ),
+  bins = list(
+    gene = 5,
+    cpd = 5
+  ),
+  # We are plotting number of hits, so specify TRUE for this
+  # If plotting, say, gene/transcript abundance, set this to FALSE
+  discrete = list(
+    gene = F,
+    cpd = F
+  ),
+  # Tally colours
+  low = path_colours[1],
+  mid = path_colours[2],
+  high = path_colours[3],
+  out.suffix = "pv_TCP_Bin2_RA_TCA",
+  kegg.native = T,
+  res = 600
+)
+```
+```{r print min and max}
+# Bin 2, Aeromonas:
+min(RA_output_TCP_Bin2_Aeromonas)
+max(RA_output_TCP_Bin2_Aeromonas)
+
+format(min(RA_output_TCP_Bin2_Aeromonas), scientific = T, digits = 3)
+format(max(RA_output_TCP_Bin2_Aeromonas), scientific = T, digits = 3)
+
+# TCP 003 and 004 combined "metagenome":
+min(RA_output_TCP_003_004)
+max(RA_output_TCP_003_004)
+
+format(min(RA_output_TCP_003_004), scientific = T, digits = 3)
+format(max(RA_output_TCP_003_004), scientific = T, digits = 3)
+```
 

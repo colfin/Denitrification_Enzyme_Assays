@@ -6,7 +6,7 @@ output: html_document
 ---
 
 # Research Question:
-## How do regenerative stormwater conveyance (RSC) potential denitrification rates compare across space (a dry vs. in-stream RSC, upstream vs. downstream, island vs. submerged) and seasons?
+## How do regenerative stormwater conveyance (RSC) potential denitrification rates and sediment inorganic nitrogen concentrations compare across space (a dry vs. in-stream RSC, upstream vs. downstream, island vs. submerged) and seasons?
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -69,6 +69,8 @@ sediment_N <- read.csv("../data/2023_SPRING_SUM_SoilKClExtracts.csv") # relative
 
 # Sediment N, dry mass corrected:
 sediment_N_DM <- read.csv("../data/NH4_NOX_per_dryMass.csv")
+
+sediment_N_DM_DEA4_Fall <- read.csv("../data/NH4_NOX_per_dryMass_DEA4.csv")
 ```
 
 
@@ -670,142 +672,66 @@ DO_plot_P1P4
 #ggsave("../figures/YSI_DO.png", plot=DO_plot_P1P4, device="png", path=NULL, scale=1, width=10, height=7, dpi=300, limitsize=TRUE, bg="white")
 ```
 
-## Sediment N data
-
-```{r Wrangling sediment N data}
-# Remove NA rows at bottom
-sediment_N <- sediment_N[1:40,]
-
-# Convert negatives into zeroes:
-sediment_N_dropNegs <- sediment_N # copy into a new df to avoid overwriting original data
-
-sediment_N_dropNegs <- sediment_N_dropNegs %>%
-  dplyr::mutate(NO3.NO2_uM = ifelse(NO3.NO2_uM < 0, 0, NO3.NO2_uM))
-
-sediment_N_dropNegs <- sediment_N_dropNegs %>%
-  dplyr::mutate(NO3.NO2_mg.L = ifelse(NO3.NO2_mg.L < 0, 0, NO3.NO2_mg.L))
-
-# Add a date column:
-sediment_N_dropNegs$Season <- denit_combined_wSUMMER$Season[9:48]
-sediment_N_dropNegs$RSC <- denit_combined_wSUMMER$RSC[9:48]
-sediment_N_dropNegs$Pool <- denit_combined_wSUMMER$Pool[9:48]
-sediment_N_dropNegs$Up_or_down <- denit_combined_wSUMMER$Up_or_down[9:48]
-sediment_N_dropNegs$Water_column <- denit_combined_wSUMMER$Water_column[9:48]
-sediment_N_dropNegs$combined_pool_name <- denit_combined_wSUMMER$combined_pool_name[9:48]
-sediment_N_dropNegs$SampleID_DEA <- denit_combined_wSUMMER$Sample_ID[9:48]
-```
-
-```{r Plot sediment NH4 data}
-# Plot Winter and Spring NH4 together, using facet:
-plot.sediment_NH4 <- ggplot(sediment_N_dropNegs, aes(x=RSC, y=NH4_mg.L)) +
-                     geom_boxplot(outlier.shape = NA) +
-                     geom_point(aes(shape=combined_pool_name, color=Water_column, fill = Water_column), size = 5, position = position_jitterdodge()) +
-  facet_wrap(vars(Season))+
-  scale_color_manual(values=c("#E69F00","#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level") +
-  scale_shape_manual(values = c(24, 25, 24, 25), labels = c("Dry RSC, up", "Dry RSC, down", "In-stream RSC, up", "In-stream RSC, down"), name = "Sample Location")+
-  scale_fill_manual(values = c("#E69F00", "#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level")+
-  theme_bw() +
-  #Remove plot grid lines
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  #Set axis title and text properties, tick marks, and labels
-  theme(text=element_text(size=40),axis.title=element_text(size=30,face="bold"),
-          axis.text=element_text(size=30),  
-          axis.title.y=element_text(margin=margin(r=10)),
-          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 40), legend.position="none", legend.title = element_text(size=40), legend.text=element_text(size=40)) + 
-          theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "", y = expression(paste("NH"[4], ""^{"+"}," (mg * L"^{-1}, ")")), title="") +
-  theme(rect=element_rect(fill="transparent"))+
-  theme(plot.background = element_rect(color=NA))+
-  stat_compare_means(method = "wilcox.test", paired = F, label = "p.signif", label.y.npc = "center", label.x.npc = "center", size = 10, hide.ns = T)
-  
- 
-plot.sediment_NH4
-```
-
-```{r Plot sediment NO2/NO3 data}
-# Plot Winter and Spring NO2/NO3 together, using facet:
-plot.sediment_NOX <- ggplot(sediment_N_dropNegs, aes(x=RSC, y=NO3.NO2_mg.L)) +
-                     geom_boxplot(outlier.shape = NA) +
-                     geom_point(aes(shape=combined_pool_name, color=Water_column, fill = Water_column), size = 5, position = position_jitterdodge()) +
-  facet_wrap(vars(Season))+
-  scale_color_manual(values=c("#E69F00","#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level") +
-  scale_shape_manual(values = c(24, 25, 24, 25), labels = c("Dry RSC, up", "Dry RSC, down", "In-stream RSC, up", "In-stream RSC, down"), name = "Sample Location")+
-  scale_fill_manual(values = c("#E69F00", "#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level")+
-  theme_bw() +
-  #Remove plot grid lines
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  #Set axis title and text properties, tick marks, and labels
-  theme(text=element_text(size=40), axis.title=element_text(size=30,face="bold"),
-          axis.text=element_text(size=30),  
-          axis.title.y=element_text(margin=margin(r=10)),
-          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 40), legend.position="none", legend.title = element_text(size=40), legend.text=element_text(size=40)) + 
-          theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "\nRegenerative Stormwater Conveyance (RSC) Type", y = expression(paste("NO"[2], ""^{"-"},"/NO"[3], ""^{"-"}, " (mg * L"^{-1}, ")")), title="") +
-  theme(rect=element_rect(fill="transparent"))+
-  theme(plot.background = element_rect(color=NA))+
-  stat_compare_means(method = "wilcox.test", paired = F, label = "p.signif", label.y.npc = "center", label.x.npc = "center",size = 10, hide.ns = T)
-  
- 
-plot.sediment_NOX
-```
-
-```{r Panel together sediment N figures}
-#plot.NH4_and_NOX <- ggarrange(plot.sediment_NH4, plot.sediment_NOX, ncol = 1, nrow = 2, labels = NULL, legend.grob = leg, legend = "right")
-
-plot.NH4_and_NOX <- ggarrange(plot.sediment_NH4, plot.sediment_NOX, ncol = 1, nrow = 2, labels = NULL, legend.grob = leg_bottom,legend = "bottom")
-
-plot.NH4_and_NOX
-
-#ggsave("../figures/sedimentNH4_and_NOX.png", plot=plot.NH4_and_NOX, device="png", path=NULL, scale=1, width=17, height=12, dpi=600, limitsize=TRUE, bg="white")
-```
-
-
 ## Sediment N per dry mass
 
+```{r Combine sediment N data into one df}
+# simplify sediment_N_DM
+sediment_N_DM_simplified <- sediment_N_DM[,c(1:6,21:22)]
+
+# simplify sediment_N_DEA4_Fall
+sediment_N_DM_DEA4_Fall_simplified <- sediment_N_DM_DEA4_Fall[1:20,c(1:6,21:22)]
+
+# match column names by replacing one of the colnames with the other
+colnames(sediment_N_DM_simplified) <- colnames(sediment_N_DM_DEA4_Fall_simplified)
+
+# combine dataframes into one (rbind)
+sediment_N_Simple_Combined <- rbind(sediment_N_DM_simplified, sediment_N_DM_DEA4_Fall_simplified)
+```
+
 ```{r Wrangling sediment N data}
 # Convert negatives into zeroes:
-sediment_N_DM_dropNegs <- sediment_N_DM # copy into a new df to avoid overwriting original data
+sediment_N_DM_dropNegs <- sediment_N_Simple_Combined # copy into a new df to avoid overwriting original data
 
 sediment_N_DM_dropNegs <- sediment_N_DM_dropNegs %>%
-  dplyr::mutate(nitrate..ug.NOx.g.soil. = ifelse(NO3.NO2_uM < 0, 0, nitrate..ug.NOx.g.soil.))
+  dplyr::mutate(NOX_adj_ug_NOx.g_soil = ifelse(NOX_adj_ug_NOx.g_soil < 0, 0, NOX_adj_ug_NOx.g_soil))
 
 # Add a date column:
-sediment_N_DM_dropNegs$Season <- denit_combined_wSUMMER$Season[9:48]
+sediment_N_DM_dropNegs$Season <- denit_combined_4Seasons$Season[9:68]
 
 # Add combined pool name:
-sediment_N_DM_dropNegs$combined_pool_name <- denit_combined_wSUMMER$combined_pool_name[9:48]
+sediment_N_DM_dropNegs$combined_pool_name <- denit_combined_4Seasons$combined_pool_name[9:68]
 ```
 
 ```{r stats assumptions}
 # Outliers:
 Outliers_Sediment_NH4 <- sediment_N_DM_dropNegs %>%
   group_by(Season) %>%
-  identify_outliers(ammonia..ug.NH4.g.soil.)
+  identify_outliers(ammonia_adj_ug_NH4.g_soil)
   # There are extreme outliers. Could run with and without outliers.
 
 Outliers_Sediment_NOX <- sediment_N_DM_dropNegs %>%
   group_by(Season) %>%
-  identify_outliers(nitrate..ug.NOx.g.soil.)
+  identify_outliers(NOX_adj_ug_NOx.g_soil)
   # There are extreme outliers. Could run with and without outliers.
 
 # Normality:
 # NH4
 sediment_N_DM_dropNegs %>%
   group_by(Season) %>%
-  shapiro_test(ammonia..ug.NH4.g.soil.)
+  shapiro_test(ammonia_adj_ug_NH4.g_soil)
   # Not normally distributed
 
   # QQ plot:
-ggqqplot(sediment_N_DM_dropNegs, "ammonia..ug.NH4.g.soil.", facet.by = "Season")
+ggqqplot(sediment_N_DM_dropNegs, "ammonia_adj_ug_NH4.g_soil", facet.by = "Season")
 
 # NOX
 sediment_N_DM_dropNegs %>%
   group_by(Season) %>%
-  shapiro_test(nitrate..ug.NOx.g.soil.)
+  shapiro_test(NOX_adj_ug_NOx.g_soil)
   # Not normally distributed
 
   # QQ plot:
-ggqqplot(sediment_N_DM_dropNegs, "nitrate..ug.NOx.g.soil.", facet.by = "Season")
+ggqqplot(sediment_N_DM_dropNegs, "NOX_adj_ug_NOx.g_soil", facet.by = "Season")
 ```
 
 ```{r Wilcox test: RSC}
@@ -813,13 +739,13 @@ ggqqplot(sediment_N_DM_dropNegs, "nitrate..ug.NOx.g.soil.", facet.by = "Season")
 sediment_N_DM_dropNegs$RSC <- as.factor(sediment_N_DM_dropNegs$RSC)
 
 # Wilcox Test, nicer format, can use to verify stats on plot:
-NH4_wilcox_RSC<- compare_means(ammonia..ug.NH4.g.soil.~RSC, sediment_N_DM_dropNegs, group.by="Season", method = "wilcox.test", paired = F)
+NH4_wilcox_RSC<- compare_means(ammonia_adj_ug_NH4.g_soil~RSC, sediment_N_DM_dropNegs, group.by="Season", method = "wilcox.test", paired = F)
 
 # Turn into data frame:
 NH4_wilcox_RSC <- as.data.frame(NH4_wilcox_RSC)
 
 # Wilcox Test, nicer format, can use to verify stats on plot:
-NOX_wilcox_RSC<- compare_means(nitrate..ug.NOx.g.soil.~RSC, sediment_N_DM_dropNegs, group.by="Season", method = "wilcox.test", paired = F)
+NOX_wilcox_RSC<- compare_means(NOX_adj_ug_NOx.g_soil~RSC, sediment_N_DM_dropNegs, group.by="Season", method = "wilcox.test", paired = F)
 
 # Turn into data frame:
 NOX_wilcox_RSC <- as.data.frame(NOX_wilcox_RSC)
@@ -840,25 +766,25 @@ sediment_N_DM_dropNegs_Dry <- sediment_N_DM_dropNegs %>%
   filter(RSC == "dry")
 
 # Wilcox Test, nicer format, can use to verify stats on plot:
-NH4_wilcox_UpvsDown_IS<- compare_means(ammonia..ug.NH4.g.soil.~Up_or_down, sediment_N_DM_dropNegs_IS, group.by="Season", method = "wilcox.test", paired = T)
+NH4_wilcox_UpvsDown_IS<- compare_means(ammonia_adj_ug_NH4.g_soil~Up_or_down, sediment_N_DM_dropNegs_IS, group.by="Season", method = "wilcox.test", paired = T)
 
 # Turn into data frame:
 NH4_wilcox_UpvsDown_IS <- as.data.frame(NH4_wilcox_UpvsDown_IS)
 
 # Wilcox Test, NH4 dry:
-NH4_wilcox_UpvsDown_Dry<- compare_means(ammonia..ug.NH4.g.soil.~Up_or_down, sediment_N_DM_dropNegs_Dry, group.by="Season", method = "wilcox.test", paired = T)
+NH4_wilcox_UpvsDown_Dry<- compare_means(ammonia_adj_ug_NH4.g_soil~Up_or_down, sediment_N_DM_dropNegs_Dry, group.by="Season", method = "wilcox.test", paired = T)
 
 # Turn into data frame:
 NH4_wilcox_UpvsDown_Dry <- as.data.frame(NH4_wilcox_UpvsDown_Dry)
 
 # Wilcox Test, NOX In-stream:
-NOX_wilcox_UpvsDown_IS<- compare_means(nitrate..ug.NOx.g.soil.~Up_or_down, sediment_N_DM_dropNegs_IS, group.by="Season", method = "wilcox.test", paired = T)
+NOX_wilcox_UpvsDown_IS<- compare_means(NOX_adj_ug_NOx.g_soil~Up_or_down, sediment_N_DM_dropNegs_IS, group.by="Season", method = "wilcox.test", paired = T)
 
 # Turn into data frame:
 NOX_wilcox_UpvsDown_IS <- as.data.frame(NOX_wilcox_UpvsDown_IS)
 
 # Wilcox Test, NOX dry:
-NOX_wilcox_UpvsDown_Dry<- compare_means(nitrate..ug.NOx.g.soil.~Up_or_down, sediment_N_DM_dropNegs_Dry, group.by="Season", method = "wilcox.test", paired = T)
+NOX_wilcox_UpvsDown_Dry<- compare_means(NOX_adj_ug_NOx.g_soil~Up_or_down, sediment_N_DM_dropNegs_Dry, group.by="Season", method = "wilcox.test", paired = T)
 
 # Turn into data frame:
 NOX_wilcox_UpvsDown_Dry <- as.data.frame(NOX_wilcox_UpvsDown_Dry)
@@ -870,7 +796,7 @@ NOX_wilcox_UpvsDown_Dry <- as.data.frame(NOX_wilcox_UpvsDown_Dry)
 
 ```{r Plot sediment NH4 data}
 # Plot Winter and Spring NH4 together, using facet:
-plot.sediment_NH4_DM <- ggplot(sediment_N_DM_dropNegs, aes(x=RSC, y=ammonia..ug.NH4.g.soil.)) +
+plot.sediment_NH4_DM <- ggplot(sediment_N_DM_dropNegs, aes(x=RSC, y=ammonia_adj_ug_NH4.g_soil)) +
                      geom_boxplot(outlier.shape = NA) +
                      geom_point(aes(shape=combined_pool_name, color=Water_column, fill = Water_column), size = 5, position = position_jitterdodge()) +
   facet_wrap(vars(Season))+
@@ -897,7 +823,7 @@ plot.sediment_NH4_DM
 
 ```{r Plot sediment NO2/NO3 data}
 # Plot Winter and Spring NO2/NO3 together, using facet:
-plot.sediment_NOX_DM <- ggplot(sediment_N_DM_dropNegs, aes(x=RSC, y=nitrate..ug.NOx.g.soil.)) +
+plot.sediment_NOX_DM <- ggplot(sediment_N_DM_dropNegs, aes(x=RSC, y=NOX_adj_ug_NOx.g_soil)) +
                      geom_boxplot(outlier.shape = NA) +
                      geom_point(aes(shape=combined_pool_name, color=Water_column, fill = Water_column), size = 5, position = position_jitterdodge()) +
   facet_wrap(vars(Season))+
@@ -927,7 +853,7 @@ plot.NH4_and_NOX_DM <- ggarrange(plot.sediment_NH4_DM, plot.sediment_NOX_DM, nco
 
 plot.NH4_and_NOX_DM
 
-#ggsave("../figures/SedimentN_4Panel.png", plot=plot.NH4_and_NOX_DM, device="png", path=NULL, scale=1, width=12, height=10, dpi=600, limitsize=TRUE, bg="white")
+#ggsave("../figures/SedimentN_2Panel.png", plot=plot.NH4_and_NOX_DM, device="png", path=NULL, scale=1, width=12, height=10, dpi=600, limitsize=TRUE, bg="white")
 ```
 
 
