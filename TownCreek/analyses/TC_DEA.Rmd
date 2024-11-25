@@ -54,14 +54,7 @@ denit_rates_FALL <- read.csv("../data/20231205/TownCreek_RSC_DEA_20231205.csv")
 denit_PRE <- read.delim("../data/PreRSC20150526/2015_TC_DEArate.txt")
 denit_PRE$Replicate <- as.factor(denit_PRE$Replicate)
 ```
-```{r YSI data}
-# Read in GEOL Spring 2023 YSI data:
-#YSI_data <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/GEOL_TC_YSI_RdataSpring2023.csv") # absolute path
-YSI_data <- read.csv("../data/GEOL_TC_YSI_RdataSpring2023.csv") # relative path
 
-YSI_data <- YSI_data[,-c(19:20)] #Trim extra columns
-YSI_data <- YSI_data[-c(27:32),] # For now, get rid of sampling day with no values (22 March 2023)
-```
 ```{r}
 # Read in N species concentration data:
 #sediment_N <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/TownCreek/data/2023_SPRING_SUM_SoilKClExtracts.csv") # absolute path
@@ -71,6 +64,11 @@ sediment_N <- read.csv("../data/2023_SPRING_SUM_SoilKClExtracts.csv") # relative
 sediment_N_DM <- read.csv("../data/NH4_NOX_per_dryMass.csv")
 
 sediment_N_DM_DEA4_Fall <- read.csv("../data/NH4_NOX_per_dryMass_DEA4.csv")
+```
+
+```{r import sediment pH data}
+sed_pH <- read.csv("../data/pH_TC_RSC.csv", header = T)
+sed_pH <- sed_pH[,1:7]
 ```
 
 
@@ -573,104 +571,6 @@ legend_plot_bottom #View the plot
 
 ```
 
-## Spring 2023 GEOL YSI data:
-
-```{r}
-nitrate_plot <- ggplot(YSI_data, aes(x=Date_Time, y=Nitrate_.NO3.N.mg.l.)) +
-                     geom_point(aes(color=Site_Name), size = 5, position = position_jitterdodge()) +
-  #scale_color_manual(values=c("#E69F00","#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level") +
-  #scale_shape_manual(values = c(24, 25), labels = c("upstream", "downstream"), name = "Sample Location")+
-  #scale_fill_manual(values = c("white", "#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Stuff")+
-  theme_bw() +
-  #Remove plot grid lines
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  #Set axis title and text properties, tick marks, and labels
-  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
-          axis.text=element_text(size=14),  
-          axis.title.y=element_text(margin=margin(r=10)),
-          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="right", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
-          theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "Date", y = expression(paste("NO"[3]^{"-"},"-N (mg/l)")), title="") +
-  theme(rect=element_rect(fill="transparent"))+
-  theme(plot.background = element_rect(color=NA))
-
-nitrate_plot
-```
-
-```{r}
-# Repeat above, but now with only Pool 1 and Pool 4:
-YSI_data_P1P4 <- dplyr::filter(YSI_data, YSI_data$Site_Name == c("Pool 1", "Pool 4"), .preserve = TRUE)
-# Above is missing two time points, so trying again with brute force approach:
-YSI_data_P1P4_2 <- YSI_data[c(1, 4, 6, 9, 11, 14, 17, 20, 22, 25),]
-```
-
-
-```{r}
-# trying to shorten the dates:
-
-require("stringr")
-
-ShortDates <- as.data.frame(str_split_fixed(YSI_data$Date_Time, "2023-", n = 2))
-#Get rid of empty column:
-
-colnames(ShortDates) <- c("Empty", "Short_Date")
-
-YSI_data_2 <- cbind(YSI_data, ShortDates)
-
-# Get rid of 'Empty' column:
-YSI_data_2 <- YSI_data_2[,-19]
-
-# Make another P1 P4 dataframe with short dates:
-YSI_data_2_P1P4_2 <- YSI_data_2[c(1, 4, 6, 9, 11, 14, 17, 20, 22, 25),]
-```
-
-```{r}
-nitrate_plot_P1P4 <- ggplot(YSI_data_2_P1P4_2, aes(x=Short_Date, y=Nitrate_.NO3.N.mg.l.)) +
-                     geom_point(aes(color=Site_Name), size = 5, position = position_jitterdodge()) +
-  #scale_color_manual(values=c("#E69F00","#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level") +
-  #scale_shape_manual(values = c(24, 25), labels = c("upstream", "downstream"), name = "Sample Location")+
-  #scale_fill_manual(values = c("white", "#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Stuff")+
-  theme_bw() +
-  #Remove plot grid lines
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  #Set axis title and text properties, tick marks, and labels
-  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
-          axis.text=element_text(size=14),  
-          axis.title.y=element_text(margin=margin(r=10)),
-          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="right", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
-          theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "Date", y = expression(paste("NO"[3]^{"-"},"-N (mg/l)")), title="") +
-  theme(rect=element_rect(fill="transparent"))+
-  theme(plot.background = element_rect(color=NA))
-
-nitrate_plot_P1P4
-
-#ggsave("../figures/YSI_nitrate.png", plot=nitrate_plot_P1P4, device="png", path=NULL, scale=1, width=10, height=7, dpi=300, limitsize=TRUE, bg="white")
-```
-
-```{r}
-DO_plot_P1P4 <- ggplot(YSI_data_2_P1P4_2, aes(x=Short_Date, y=Dissolved_Oxygen_...)) +
-                     geom_point(aes(color=Site_Name), size = 5, position = position_jitterdodge()) +
-  #scale_color_manual(values=c("#E69F00","#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level") +
-  #scale_shape_manual(values = c(24, 25), labels = c("upstream", "downstream"), name = "Sample Location")+
-  #scale_fill_manual(values = c("white", "#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Stuff")+
-  theme_bw() +
-  #Remove plot grid lines
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  #Set axis title and text properties, tick marks, and labels
-  theme(text=element_text(size=14),axis.title=element_text(size=14,face="bold"),
-          axis.text=element_text(size=14),  
-          axis.title.y=element_text(margin=margin(r=10)),
-          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 14), legend.position="right", legend.title = element_text(size=14), legend.text=element_text(size=14)) + 
-          theme(axis.ticks.length=unit(0.3,"cm")) + 
-          labs(x = "Date", y = "%DO", title="") +
-  theme(rect=element_rect(fill="transparent"))+
-  theme(plot.background = element_rect(color=NA))
-
-DO_plot_P1P4
-
-#ggsave("../figures/YSI_DO.png", plot=DO_plot_P1P4, device="png", path=NULL, scale=1, width=10, height=7, dpi=300, limitsize=TRUE, bg="white")
-```
 
 ## Sediment N per dry mass
 
@@ -855,6 +755,113 @@ plot.NH4_and_NOX_DM
 
 #ggsave("../figures/SedimentN_2Panel.png", plot=plot.NH4_and_NOX_DM, device="png", path=NULL, scale=1, width=12, height=10, dpi=600, limitsize=TRUE, bg="white")
 ```
+
+## Sediment pH
+```{r}
+# Define a named vector for matching Dates to Seasons
+season_map <- c(
+  "20230329" = "Spring (29 March 2023)",
+  "20230621" = "Summer (21 June 2023)",
+  "20231205" = "Fall (5 December 2023)"
+)
+
+# Add a 'Season' column by matching the 'Date' column to the season_map
+sed_pH$Season <- factor(season_map[as.character(sed_pH$Date)], levels = c("Spring (29 March 2023)", "Summer (21 June 2023)", "Fall (5 December 2023)"))
+
+
+# Add combined pool name:
+sed_pH$combined_pool_name <- denit_combined_4Seasons$combined_pool_name[9:68]
+```
+
+```{r stats assumptions}
+# Outliers:
+Outliers_Sediment_pH <- sed_pH %>%
+  group_by(Season) %>%
+  identify_outliers(pH)
+Outliers_Sediment_pH
+  # There are extreme outliers.
+
+# Normality:
+sed_pH %>%
+  group_by(Season) %>%
+  shapiro_test(pH)
+  # Not normally distributed
+
+  # QQ plot:
+ggqqplot(sed_pH, "pH", facet.by = "Season")
+```
+
+```{r Wilcox test: RSC}
+# Set factors:
+sed_pH$RSC <- as.factor(sed_pH$RSC)
+
+# Wilcox Test, nicer format, can use to verify stats on plot:
+pH_wilcox_RSC<- compare_means(pH~RSC, sed_pH, group.by="Season", method = "wilcox.test", paired = F)
+
+# Turn into data frame:
+pH_wilcox_RSC <- as.data.frame(pH_wilcox_RSC)
+
+# Export the data frame to a .csv file
+#write.csv(CH4_wilcox, file = "../figures/pub/tables/Wilcox_NPvP/CH4_wilcox.csv", row.names = T)
+```
+
+```{r Wilcox test: Upstream vs. downstream}
+# Set factors:
+sed_pH$Up_or_down <- as.factor(sed_pH$Up_or_down)
+
+# Separate IS and dry:
+sed_pH_IS <- sed_pH %>%
+  filter(RSC == "in-stream" & Water_column == "submerged")
+
+sed_pH_Dry <- sed_pH %>%
+  filter(RSC == "dry")
+
+# Wilcox Test, pH in-stream:
+pH_wilcox_UpvsDown_IS<- compare_means(pH~Up_or_down, sed_pH_IS, group.by="Season", method = "wilcox.test", paired = T)
+
+# Turn into data frame:
+pH_wilcox_UpvsDown_IS <- as.data.frame(NH4_wilcox_UpvsDown_IS)
+
+# Wilcox Test, pH dry:
+pH_wilcox_UpvsDown_Dry<- compare_means(pH~Up_or_down, sed_pH_Dry, group.by="Season", method = "wilcox.test", paired = T)
+
+# Turn into data frame:
+pH_wilcox_UpvsDown_Dry <- as.data.frame(pH_wilcox_UpvsDown_Dry)
+
+# Export the data frame to a .csv file
+#write.csv(CH4_wilcox, file = "../figures/pub/tables/Wilcox_NPvP/CH4_wilcox.csv", row.names = T)
+```
+
+
+```{r Plot sediment pH data}
+plot.sed_pH <- ggplot(sed_pH, aes(x=RSC, y=pH)) +
+                     geom_boxplot(outlier.shape = NA) +
+                     geom_point(aes(shape=combined_pool_name, color=Water_column, fill = Water_column), size = 5, position = position_jitterdodge()) +
+  facet_wrap(vars(Season))+
+  scale_color_manual(values=c("#E69F00","#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level") +
+  scale_shape_manual(values = c(24, 25, 24, 25), labels = c("Dry RSC, up", "Dry RSC, down", "In-stream RSC, up", "In-stream RSC, down"), name = "Sample Location")+
+  scale_fill_manual(values = c("#E69F00", "#009E73","#56B4E9"), labels = c("dry", "island", "submerged"), name="Water Level")+
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          panel.border = element_rect(colour = "black",linewidth=1),strip.text = element_text(size = 20), legend.position="none", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "\nRegenerative Stormwater Conveyance (RSC) Type", y = "sediment pH", title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))+
+  stat_compare_means(method = "wilcox.test", paired = F, label = "p.signif", label.y.npc = "center", label.x.npc = "center", size = 10, hide.ns = T)
+  
+ 
+plot.sed_pH
+
+ggsave("../figures/pH_sediment.png", plot=plot.sed_pH, device="png", path=NULL, scale=1, width=12, height=8, dpi=600, limitsize=TRUE, bg="white")
+```
+
+
 
 
 ## Precipitation
