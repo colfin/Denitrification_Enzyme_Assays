@@ -1,0 +1,53 @@
+Sample,N_perc,C_perc,Salinity_ppt,EC_uS.cm
+AG_HC_001_low_main1_plot1,0.151,1.274,0,60
+AG_HC_002_low_main1_plot2,0.142,1.288,0,64
+AG_HC_003_low_main1_plot3,0.157,1.352,0,72
+AG_HC_004_low_main1_plot4,0.136,1.326,0,70
+AG_HC_005_med_main1_plot1,0.116,1.081,0,160
+AG_HC_006_med_main1_plot2,0.132,1.307,0,96
+AG_HC_007_med_main1_plot3,0.121,1.228,0,144
+AG_HC_008_med_main1_plot4,0.116,1.21,0,104
+AG_HC_009_high_main1_plot1,0.097,1.081,3,1600
+AG_HC_010_high_main1_plot2,0.112,1.219,0,340
+AG_HC_011_high_main1_plot3,0.12,1.476,0,240
+AG_HC_012_high_main1_plot4,0.082,0.933,4,2500
+AG_HC_013_low_internal2_plot1,0.133,1.331,0,144
+AG_HC_014_low_internal2_plot2,0.117,1.161,0,168
+AG_HC_015_low_internal2_plot3,0.125,1.217,0,128
+AG_HC_016_low_internal2_plot4,0.117,1.209,0,184
+AG_HC_017_med_internal2_plot1,0.133,1.325,0,200
+AG_HC_018_med_internal2_plot2,0.149,1.686,0,288
+AG_HC_019_med_internal2_plot3,0.151,1.462,0,320
+AG_HC_020_med_internal2_plot4,0.139,1.509,0,104
+AG_HC_021_high_internal2_plot1,0.125,1.254,0,130
+AG_HC_022_high_internal2_plot2,0.146,1.531,0,230
+AG_HC_023_high_internal2_plot3,0.109,1.071,0,220
+AG_HC_024_high_internal2_plot4,0.129,1.373,0,544
+AG_HC_025_low_main_buffer,0.172,1.799,0,40
+AG_HC_026_med_main_buffer,0.149,1.506,0,64
+AG_HC_027_high_main_buffer,0.135,1.527,0,296
+AG_HC_028_comb_internal_buffer,0.261,3.025,0,790
+AG_LD_001_North Field_1,0.12,1.484,0,24
+AG_LD_002_North Field_2,0.086,1.17,0,16
+AG_LD_003_North Field_3,0.147,2.043,0,24
+AG_LD_004_North Field_4,0.216,3.563,0,40
+AG_LD_005_North Buffer_1,0.112,1.313,0,30
+AG_LD_006_North Buffer_2,0.153,1.753,0,32
+AG_LD_007_North Buffer_3,0.099,1.194,0,24
+AG_LD_008_North Buffer_4,0.094,1.187,0,24
+AG_LD_009_East Buffer_1,0.362,5.126,0,96
+AG_LD_010_East Buffer_2,0.598,8.942,0,100
+AG_LD_011_East Buffer_3,0.416,5.672,0,80
+AG_LD_012_East Buffer_4,0.451,6.322,0,80
+AG_LD_013_East Field_1,0.193,2.683,0,30
+AG_LD_014_East Field_2,0.203,2.596,0,32
+AG_LD_015_East Field_3,0.194,2.967,0,32
+AG_LD_016_East Field_4,0.186,2.527,0,32
+AG_LD_017_South Field_1,0.062,0.546,0,40
+AG_LD_018_South Field_2,0.094,0.887,0,30
+AG_LD_019_South Field_3,0.084,0.852,0,30
+AG_LD_020_South Field_4,0.0745,0.849,0,30
+AG_LD_021_South Buffer_1,0.217,2.357,0,48
+AG_LD_022_South Buffer_2,0.23,2.617,0,48
+AG_LD_023_South Buffer_3,0.244,2.8,0,48
+AG_LD_024_South Buffer_4,0.163,1.923,0,50

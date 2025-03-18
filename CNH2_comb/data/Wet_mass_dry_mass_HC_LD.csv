@@ -1,0 +1,53 @@
+SampleID,wet_soil_g,dry_soil_g
+AG_HC_001_low_main1_plot1,28,22.88
+AG_HC_002_low_main1_plot2,28,22.48
+AG_HC_003_low_main1_plot3,29,23.56
+AG_HC_004_low_main1_plot4,29,25.34
+AG_HC_005_med_main1_plot1,30,24.72
+AG_HC_006_med_main1_plot2,28,22.48
+AG_HC_007_med_main1_plot3,28,22.88
+AG_HC_008_med_main1_plot4,29,23.82
+AG_HC_009_high_main1_plot1,28,22.42
+AG_HC_010_high_main1_plot2,28,21.78
+AG_HC_011_high_main1_plot3,29,23.26
+AG_HC_012_high_main1_plot4,27,21.74
+AG_HC_013_low_internal2_plot1,28,22.3
+AG_HC_014_low_internal2_plot2,28,23.74
+AG_HC_015_low_internal2_plot3,30,23.6
+AG_HC_016_low_internal2_plot4,30,23.84
+AG_HC_017_med_internal2_plot1,27,21.6
+AG_HC_018_med_internal2_plot2,28,23.52
+AG_HC_019_med_internal2_plot3,30,23.5
+AG_HC_020_med_internal2_plot4,30,24.46
+AG_HC_021_high_internal2_plot1,28,22.02
+AG_HC_022_high_internal2_plot2,29,23.42
+AG_HC_023_high_internal2_plot3,30,23.96
+AG_HC_024_high_internal2_plot4,30,23.5
+AG_HC_025_low_main_buffer,28,21.62
+AG_HC_026_med_main_buffer,30,23.5
+AG_HC_027_high_main_buffer,30,21.18
+AG_HC_028_comb_internal_buffer,28,19.98
+AG_LD_001_North Field_1,25.7,21.34
+AG_LD_002_North Field_2,27.5,25.14
+AG_LD_003_North Field_3,24.56,20.02
+AG_LD_004_North Field_4,25.22,19.3
+AG_LD_005_North Buffer_1,25.38,22.28
+AG_LD_006_North Buffer_2,25.34,22.32
+AG_LD_007_North Buffer_3,26.38,24.25
+AG_LD_008_North Buffer_4,25.74,23.62
+AG_LD_009_East Buffer_1,25.44,16.96
+AG_LD_010_East Buffer_2,25.96,11.68
+AG_LD_011_East Buffer_3,25.26,14.6
+AG_LD_012_East Buffer_4,24.96,14.1
+AG_LD_013_East Field_1,27.08,21.68
+AG_LD_014_East Field_2,24.74,17.54
+AG_LD_015_East Field_3,25.32,19
+AG_LD_016_East Field_4,25.18,19.98
+AG_LD_017_South Field_1,25.14,23.46
+AG_LD_018_South Field_2,24,21.04
+AG_LD_019_South Field_3,29.14,25.8
+AG_LD_020_South Field_4,25.66,24.1
+AG_LD_021_South Buffer_1,24.22,19.62
+AG_LD_022_South Buffer_2,32.52,25.1
+AG_LD_023_South Buffer_3,30.46,25.18
+AG_LD_024_South Buffer_4,26.36,21.46

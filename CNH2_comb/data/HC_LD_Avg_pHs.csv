@@ -1,0 +1,53 @@
+SampleID,mean_pH
+AG_HC_001_low_main1_plot1,5.665333333
+AG_HC_002_low_main1_plot2,5.929666667
+AG_HC_003_low_main1_plot3,5.986333333
+AG_HC_004_low_main1_plot4,5.923333333
+AG_HC_005_med_main1_plot1,5.062666667
+AG_HC_006_med_main1_plot2,5.326
+AG_HC_007_med_main1_plot3,5.222
+AG_HC_008_med_main1_plot4,5.32
+AG_HC_009_high_main1_plot1,4.479333333
+AG_HC_010_high_main1_plot2,4.753666667
+AG_HC_011_high_main1_plot3,5.131333333
+AG_HC_012_high_main1_plot4,4.471666667
+AG_HC_013_low_internal2_plot1,7.228
+AG_HC_014_low_internal2_plot2,7.569333333
+AG_HC_015_low_internal2_plot3,7.417333333
+AG_HC_016_low_internal2_plot4,7.84
+AG_HC_017_med_internal2_plot1,5.861
+AG_HC_018_med_internal2_plot2,5.899333333
+AG_HC_019_med_internal2_plot3,5.571666667
+AG_HC_020_med_internal2_plot4,5.819333333
+AG_HC_021_high_internal2_plot1,5.793
+AG_HC_022_high_internal2_plot2,5.751666667
+AG_HC_023_high_internal2_plot3,6.174
+AG_HC_024_high_internal2_plot4,5.4
+AG_HC_025_low_main_buffer,5.864333333
+AG_HC_026_med_main_buffer,5.470666667
+AG_HC_027_high_main_buffer,4.771333333
+AG_HC_028_comb_internal_buffer,5.424333333
+AG_LD_001_North Field_1,4.420666667
+AG_LD_002_North Field_2,5.833333333
+AG_LD_003_North Field_3,5.91
+AG_LD_004_North Field_4,6.332
+AG_LD_005_North Buffer_1,5.672333333
+AG_LD_006_North Buffer_2,4.409333333
+AG_LD_007_North Buffer_3,5.623666667
+AG_LD_008_North Buffer_4,5.623666667
+AG_LD_009_East Buffer_1,4.291666667
+AG_LD_010_East Buffer_2,4.367666667
+AG_LD_011_East Buffer_3,4.773333333
+AG_LD_012_East Buffer_4,4.599666667
+AG_LD_013_East Field_1,5.449
+AG_LD_014_East Field_2,5.643
+AG_LD_015_East Field_3,5.311
+AG_LD_016_East Field_4,5.904333333
+AG_LD_017_South Field_1,3.288666667
+AG_LD_018_South Field_2,5.737
+AG_LD_019_South Field_3,6.371333333
+AG_LD_020_South Field_4,6.318333333
+AG_LD_021_South Buffer_1,5.586
+AG_LD_022_South Buffer_2,5.779
+AG_LD_023_South Buffer_3,5.577666667
+AG_LD_024_South Buffer_4,6.051
