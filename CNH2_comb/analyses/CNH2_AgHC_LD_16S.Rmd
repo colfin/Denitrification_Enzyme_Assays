@@ -53,7 +53,10 @@ require("BiocManager")
 ```
 
 ```{r Phyloseq install and load}
-install_phyloseq(branch = "github")
+#source("https://raw.githubusercontent.com/joey711/phyloseq/master/inst/scripts/installer.R",
+    #   local = TRUE)
+
+#install_phyloseq(branch = "github")
 
 require("phyloseq")
 
@@ -75,79 +78,63 @@ ci <- function(x, ...) {
 ```{r load files paths}
 #Load data files
 #Assign file names to variables
-sharedfile = "../data/tmg2016.with.archaeaopti_mcc.shared"
-taxfile = "../data/tmg2016.with.archaea.opti_mcc.0.03.cons.taxonomy"
-metafile = "../data/tmg_design.csv"
+sharedfile = "../data/mothur/Ag_HC_LD_Oct25Mothur.opti_mcc.shared"
+
+rarefaction = "../data/mothur/Ag_HC_LD_Oct25Mothur.opti_mcc.groups.rarefaction"
+
+taxfile = "../data/mothur/Ag_HC_LD_Oct25Mothur.opti_mcc.0.03.cons.taxonomy"
+
+asv_shared = "../data/mothur/ASV/Ag_HC_LD_Oct25Mothur.asv.shared"
+asv_taxfile = "../data/mothur/ASV/Ag_HC_LD_Oct25Mothur.asv.0.03.cons.taxonomy"
+
+#metafile = "../data/tmg_design.csv"
 ```
 
 ```{r read in otu file and trim}
 #Read in OTU file
 otu <- read.otu(sharedfile)
 rownames(otu)
+dim(otu)
 
-#remove rogue sample... looks like there was a naming error at some point resulting in the additional sample below
-otu.2 <- otu[!(rownames(otu) %in% "13PN"),]
+asv <- read_tsv(asv_shared)
 
-#Removing microbial samples from "box" soils and keeping samples collected from within the chamber area since these should more directly relate to GHG flux data
-c <- grep("*B", rownames(otu.2), value=T)
-otu.2 <- otu.2[!(rownames(otu.2) %in% c),]
 
-#REMOVING STARTING SAMPLES
-c <- grep("*S", rownames(otu.2), value=T)
-otu.2 <- otu.2[!(rownames(otu.2) %in% c),]
+s<- sum(colSums(otu)) #2250
+s
 
-#Remove Field samples. 
-otu.2.nofield <- otu.2[!(rownames(otu.2) %in% "TL1"),]
-otu.2.nofield <- otu.2.nofield[!(rownames(otu.2.nofield) %in% "TL2"),]
-otu.2.nofield <- otu.2.nofield[!(rownames(otu.2.nofield) %in% "TL3"),]
-otu.2.nofield <- otu.2.nofield[!(rownames(otu.2.nofield) %in% "TL4"),]
-otu.2.nofield <- otu.2.nofield[!(rownames(otu.2.nofield) %in% "TL5"),]
-otu.2.nofield <- otu.2.nofield[!(rownames(otu.2.nofield) %in% "TL6"),]
-
-otu.2 <- otu.2.nofield
-
-#Remove OTUs with less than 10 occurrences across all sites
-b <- ncol(otu.2) #67355 OTUs,
-
-# !=0 35,897
-# =0 31,458
-# =1 15,582
-# =2  5,536
-# =3  2,580
-# =4  1,613
-# =5  1,029
-# =6    853
-# =7    669
-# =8    535
-# =9    474
-#=10    402
-
-s<- sum(colSums(otu.2)) #1570135
-otu.2 <- otu.2[, which(colSums(otu.2) >= 10)]
-a <- ncol(otu.2) #7026 OTUs
-sf<- sum(colSums(otu.2)) #1505797
+a <- ncol(otu) #634 OTUs
+a
 
 #What sample has lowest read count? 
-otu2<- colSums(t(otu.2))
-otu2[which.min(colSums(t(otu.2)))]
-otu2[which.max(colSums(t(otu.2)))]
-
-#Lowest sample is 8NS 20370, highest 16NS 154034
-#Most sample fall between 20370 and ~60000 with only a few higher than that so not removing the lowest sample 
+#otu<- colSums(t(otu.))
+otu[which.min(colSums(t(otu)))]
+otu[which.max(colSums(t(otu)))]
 
 #graph of read counts
-d<-as.data.frame(otu.2)
+d<-as.data.frame(otu)
 d$colsum <- colSums(t(d))
 d$group <- rownames(d)
 p<-ggplot(d, aes(x=group,y=colsum))+geom_bar(stat="identity")+coord_flip()
 p
 
+
+
 #Rarefy
 #Set min sample number
-min.N <- min(rowSums(otu.2))
+min.N <- min(rowSums(otu))
+min.N
+
+# new df wich drops the sample with only 2 otu hits:
+otu.2 <- otu[rownames(otu) != "AGLD004bc093", ]
+
+# new min sample number
+min.N_2 <- min(rowSums(otu.2))
+min.N_2
+  
+
 #rrarefy returns a randomly rarefied community data frame or vector of selected size
 #This is the otu set that should be used for beta diversity metrics
-otu.2 <- rrarefy(otu.2, min.N)
+otu.3 <- vegan::rrarefy(otu, min.N_2)
 ```
 
 ```{r read in meta data}
