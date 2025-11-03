@@ -26,7 +26,7 @@ require("ggplot2"):require("tidyr"):require("ggpubr")
 
 ```{r import data}
 # Read in denitrification rate calculations from Hyde County DEA, 20221208 sampling:
-denit_rates <- read.csv("~/GitHub//Denitrification_Enzyme_Assays/HydeCounty/data/denit_rates_HydeCo_20221208.csv")
+denit_rates <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/HydeCounty/data/denit_rates_HydeCo_20221208.csv")
 
 # Read in denitrification rate calculation with CORRECTED rates for morning samples:
 denit_CORRECTED <- read.csv("~/GitHub/Denitrification_Enzyme_Assays/HydeCounty/data/CORRECTED_denit_rates_HydeCo_20221208.csv")
@@ -272,6 +272,7 @@ methods2panel2
 
 #ggsave("../figures/corrections/methods2panel2.png", plot=methods2panel2, device="png", path=NULL, scale=1, width=17, height=7, dpi=600, limitsize=TRUE, bg="white")
 ```
+
 # Make boxplots of individual sites, for map inset
 
 ```{r wrangle low and main only}
