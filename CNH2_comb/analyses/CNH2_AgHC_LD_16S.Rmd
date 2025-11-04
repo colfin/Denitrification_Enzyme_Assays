@@ -27,15 +27,7 @@ require("vegan")
 require("tidyverse")
 require("reshape2")
 require("ecodist")
-#require("MASS")
-#require("MuMIn")
-#require("AICcmodavg")
-#require("emmeans")
-#require("car")
-#require("dbstats")
-#require("plyr")
 require("ggpubr")
-#require("labdsv")
 require("grid")
 #require("multcomp")
 #require("multcompView")
@@ -44,6 +36,8 @@ require("NSM3")
 require("ggpmisc")
 require("funrar")
 require("glue")
+require("sf")
+require("NSM3")
 ```
 
 ```{r Bioconductor install and load}
@@ -95,6 +89,9 @@ N_inorganic <- read.csv("../data/soil/ERL_KCl_data_HC_LD_comb.csv")
 pH <- read.csv("../data/soil/HC_LD_Avg_pHs.csv")
 C_N_Sal_EC <- read.csv("../data/soil/HC_LD_CN_Sal_EC.csv")
 Wet_dry_mass <- read.csv("../data/soil/Wet_mass_dry_mass_HC_LD.csv")
+
+# GPS coordinates
+LatLongs <- read.csv("../data/LatLongs.csv", fileEncoding = "latin1", stringsAsFactors = FALSE)
 ```
 
 ```{r read in otu file and trim}
@@ -108,8 +105,8 @@ s
 
 #What sample has lowest read count? 
 #otu<- colSums(t(otu.))
-otu[which.min(colSums(t(otu2)))]
-otu[which.max(colSums(t(otu2)))]
+otu2[which.min(colSums(t(otu2)))]
+otu2[which.max(colSums(t(otu2)))]
 
 #graph of read counts
 d<-as.data.frame(otu2)
@@ -218,131 +215,13 @@ meta_otu$Field_or_Buffer <- as.factor(meta_otu$Field_or_Buffer)
 metaotu.ad <- adonis2(meta_otu[,-c(1:5)] ~ Site * Field_or_Buffer, method = "bray", data = meta_otu, perm=10000, set.seed=42, by = "terms")
 metaotu.ad
 
+metaotu.ad.2 <- adonis2(meta_otu[,-c(1:5)] ~ Site * Field_or_Buffer * Treatment_salt, method = "bray", data = meta_otu, perm=10000, set.seed=42, by = "terms")
+metaotu.ad.2 # The interaction between field/buffer and Treatment_salt makes this model unusable
+
+metaotu.ad.3 <- adonis2(meta_otu[,-c(1:5)] ~ Treatment_salt, method = "bray", data = meta_otu, perm=10000, set.seed=42, by = "terms")
+metaotu.ad.3 # Treatment_salt overlaps with field/buffer categories too much, not very informative
+
 # For treatment_salt (Hyde) and maybe Field_Location (if not redundant), analyze within Hyde (and maybe within Pitt)
-```
-
-# Indicator species
-
-```{r read and clean taxonomy file}
-tax <- import_mothur(mothur_constaxonomy_file =  taxfile)
-tax.df <- as.data.frame(tax)
-
-tax.df <- tax.df %>% 
-  rownames_to_column(var = "otu")
-
-colnames(tax.df)=c("otu","domain","Phylum","Class", "Order","Family","Genus")
-
-#Clean up taxonomy file. Remove underscores and unclassified
-tax.df <- tax.df %>%
-    mutate(Family = str_replace(Family, "_family_incertae_sedis", ""), Genus = str_replace(Genus, "_genera_incertae_sedis", "")) %>%
-  mutate(Phylum = str_replace_all(Phylum,"_unclassified", ""), Order = str_replace_all(Order,"_unclassified", ""),Class = str_replace_all(Class,"_unclassified", ""), Family = str_replace_all(Family,"_unclassified", ""), Genus = str_replace_all(Genus,"_unclassified", "")) %>%
-  mutate(Phylum = str_replace_all(Phylum,"_", " "), Order = str_replace_all(Order,"_", " "),Class = str_replace_all(Class,"_", " "), Family = str_replace_all(Family,"_", " "), Genus = str_replace_all(Genus,"_", " ")) 
-```
-
-```{r Indicator Species}
-#Final sampling, no field
-new.data <-metaotu
-new.data$history <- as.factor(new.data$history)
-new.data$treatment <- as.factor(new.data$treatment)
-
-#group = interaction(new.data$plant, new.data$treatment, new.data$history) #Setup to analyze all three factors
-# Only History and Treatment had significant results in PERMANOVA (i.e., adonis) (see above)
-# Therefore, only History and Treatment will be used to group bacterial indicator species analysis:
-group.hist <- new.data$history
-group.trt <- new.data$treatment
-
-dataREL <- new.data[,-c(1:9)] # Only OTU columns (i.e., relative [REL] abundance data), no metadata columns
-
-dataREL <- dataREL[, colSums(dataREL) > 0.025] # Drop very rare OTUs from the analysis; only analyze most abundant 2.5%
-
-bac.ind_hist <- indval(dataREL, group.hist, numitr = 10000, set.seed(42))
-bac.ind_trt <- indval(dataREL, group.trt, numitr = 10000, set.seed(42))
-
-summary(bac.ind_hist)
-summary(bac.ind_trt)
-
-# p-value cutoff:
-inds_hist <- which(bac.ind_hist$pval <= 0.01)
-inds_trt <- which(bac.ind_trt$pval <= 0.01)
-
-# Make data frame skeleton:
-bac.indicators_hist <- as.data.frame(matrix(NA, nrow = length(inds_hist), ncol = 4))
-bac.indicators_trt <- as.data.frame(matrix(NA, nrow = length(inds_trt), ncol = 4))
-
-# Set column names:
-colnames(bac.indicators_hist) <- c("OTU", "Cluster", "IndVal", "Prob")
-colnames(bac.indicators_trt) <- c("OTU", "Cluster", "IndVal", "Prob")
-
-# Poplulate OTU column:
-bac.indicators_hist$OTU <- names(inds_hist)
-bac.indicators_trt$OTU <- names(inds_trt)
-
-# Populate Cluster column:
-bac.indicators_hist$Cluster <- bac.ind_hist$maxcls[inds_hist]
-bac.indicators_trt$Cluster <- bac.ind_trt$maxcls[inds_trt]
-
-# Populate IndVal column:
-bac.indicators_hist$IndVal <- bac.ind_hist$indcls[inds_hist]
-bac.indicators_trt$IndVal <- bac.ind_trt$indcls[inds_trt]
-
-# Populate p-value column:
-bac.indicators_hist$Prob <- bac.ind_hist$pval[inds_hist]
-bac.indicators_trt$Prob <- bac.ind_trt$pval[inds_trt]
-
-otu.tax <- as.data.frame(tax.df)
-
-ind.tax_hist <- otu.tax[which(as.character(otu.tax$otu) %in% bac.indicators_hist$OTU), ]
-ind.tax_trt <- otu.tax[which(as.character(otu.tax$otu) %in% bac.indicators_trt$OTU), ]
-
-ind.tax_hist <- ind.tax_hist[match(ind.tax_hist$otu, bac.indicators_hist$OTU), ]
-ind.tax_trt <- ind.tax_trt[match(ind.tax_trt$otu, bac.indicators_trt$OTU), ]
-
-# Add taxonomic information:
-indicator.bac_hist <- cbind(bac.indicators_hist, ind.tax_hist[, -c(1)])
-indicator.bac_trt <- cbind(bac.indicators_trt, ind.tax_trt[, -c(1)])
-
-# Order rows by Cluster:
-indicator.bac_hist <- indicator.bac_hist[order(as.numeric(indicator.bac_hist$Cluster)), ]
-indicator.bac_trt <- indicator.bac_trt[order(as.numeric(indicator.bac_trt$Cluster)), ]
-
-# Print information from tables:
-table(indicator.bac_hist$Cluster)
-table(indicator.bac_trt$Cluster)
-
-table(indicator.bac_hist$Phylum)
-table(indicator.bac_trt$Phylum)
-
-# Identify what the Cluster numbers mean:
-levels(group.hist)
-levels(group.trt)
-
-#Replace cluster numbers with factor names:
-indicator.bac_hist["Cluster"][indicator.bac_hist["Cluster"] == 1] <- "Dry"
-indicator.bac_trt["Cluster"][indicator.bac_trt["Cluster"] == 1] <- "Dry"
-
-indicator.bac_hist["Cluster"][indicator.bac_hist["Cluster"] == 2] <- "Interim"
-indicator.bac_trt["Cluster"][indicator.bac_trt["Cluster"] == 2] <- "Interim"
-
-indicator.bac_hist["Cluster"][indicator.bac_hist["Cluster"] == 3] <- "Wet"
-indicator.bac_trt["Cluster"][indicator.bac_trt["Cluster"] == 3] <- "Wet"
-
-#Find overlapping indicator tax in hist and trt:
-common_indicators <- generics::intersect(indicator.bac_hist$OTU, indicator.bac_trt$OTU)
-common_indicators <- as.data.frame(common_indicators) #Make it a data frame
-colnames(common_indicators) <- "OTU" #Rename column header to "OTU" to match with indicator.bac_hist and indicator.bac_trt
-
-common_indicators <- left_join(common_indicators, indicator.bac_hist, by = "OTU") #Add data from indicator.bac_hist
-colnames(common_indicators)[2:4] <- c("Cluster_hist", "IndVal_hist", "Prob_hist") #Rename to not confuse with treatment indicators, added next:
-  #Add data from indicator.bac_trt:
-common_indicators <- left_join(common_indicators, indicator.bac_trt, by = c("OTU", "domain", "Phylum", "Class", "Order", "Family", "Genus")) 
-colnames(common_indicators)[11:13] <- c("Cluster_treatment", "IndVal_treatment", "Prob_treatment")
-
-# Export Bacteria Indicator Tables:
-#write.table(indicator.bac_hist, "../figures/pub/BacterialIndicators_History.txt",
-           #sep="\t", row.names = F, quote = F)
-
-#write.table(indicator.bac_trt, "../figures/pub/BacterialIndicators_Treatment.txt",
-            #sep="\t", row.names = F, quote = F)
 ```
 
 # Denitrification and soil parameters
@@ -361,11 +240,11 @@ values_to_remove <- c("AG_HC_001_ACET", "AG_HC_002_ACET", "AG_HC_003_ACET", "AG_
 
 HC_denit_acet_filtered <- HC_denit_acet[!(HC_denit_acet$Sample_ID %in% values_to_remove), ]
 
-# rbind HC and LD
 # first, need to simplify so column number and names match
 HC_denit_simple <- HC_denit_acet_filtered[,c(1,6)]
 LD_denit_simple <- LD_denit_acet[, c(1,8)]
 
+# rbind HC and LD
 comb_denit_simple <- rbind(HC_denit_simple, LD_denit_simple)
 
 # row names to match PCoA
@@ -386,47 +265,181 @@ Wet_dry_mass$PercentMoisture <- ((Wet_dry_mass$wet_soil_g - Wet_dry_mass$dry_soi
 
 #N_inorganic
 # add dry_proportion column
+# replace NAs in N inorganic with zeros
+N_inorganic[, c("NH4_uM", "NH4_mg.L", "NO3_NO2_uM", "NO3_NO2_mg.L")] <- lapply(
+  N_inorganic[, c("NH4_uM", "NH4_mg.L", "NO3_NO2_uM", "NO3_NO2_mg.L")],
+  function(x) ifelse(is.na(x), 0, x))
+
 N_inorganic$dry_proportion <- Wet_dry_mass$dry_proportion
 
 # Calculate dry soil input for KCl extraction (dry soil input = wet g * dry_proportion)
 N_inorganic$dry_soil_g <- N_inorganic$KCl_field_moist_g_soil * N_inorganic$dry_proportion
 
 # divide mg/L by dry g for final unit to use in simplified data frame
+N_inorganic$NH4_mg.L.gDM <- N_inorganic$NH4_mg.L / N_inorganic$dry_soil_g
 
+N_inorganic$NO3_NO2_mg.L.gDM <- N_inorganic$NO3_NO2_mg.L / N_inorganic$dry_soil_g
 
 #pH
+  # already good
+
 #C_N_Sal_EC
-
-
-
+# C:N ratio
+C_N_Sal_EC$CN <- C_N_Sal_EC$C_perc / C_N_Sal_EC$N_perc
 ```
 
+```{r simplify, rbind, row names}
+# first, need to simplify so column number and names match
+Soil_moisture_simp <- Wet_dry_mass[,c(1,5)]
+N_inorganic_simp <- N_inorganic[, c(1,9,10)]
+
+# row names to match PCoA
+# get rid of underscores
+rownames(Soil_moisture_simp) <- gsub(pattern = "_", replacement = "", x = Soil_moisture_simp$SampleID)
+rownames(N_inorganic_simp) <- gsub(pattern = "_", replacement = "", x = N_inorganic_simp$Sample)
+rownames(pH) <- gsub(pattern = "_", replacement = "", x = pH$SampleID)
+rownames(C_N_Sal_EC) <- gsub(pattern = "_", replacement = "", x = C_N_Sal_EC$Sample)
+
+# This selects and keeps only the first 7 characters of each row name
+rownames(Soil_moisture_simp) <- substr(rownames(Soil_moisture_simp), start = 1, stop = 7)
+rownames(N_inorganic_simp) <- substr(rownames(N_inorganic_simp), start = 1, stop = 7)
+rownames(pH) <- substr(rownames(pH), start = 1, stop = 7)
+rownames(C_N_Sal_EC) <- substr(rownames(C_N_Sal_EC), start = 1, stop = 7)
+```
+
+```{r combine all and filter for envfit}
+# combine denit and all soil data frames (cbind)
+denit_soil_all <- cbind(comb_denit_simple, Soil_moisture_simp, N_inorganic_simp, pH, C_N_Sal_EC)
+
+# remove sample ID columns
+denit_soil_all <- denit_soil_all[,-c(1, 3, 5, 8, 10)]
+
+# create new data frame that only contains 16S samples. This will be the envfit data frame
+denit_soil_filtered <- denit_soil_all[rownames(denit_soil_all) %in% rownames(otu_rel), ]
+```
+
+```{r}
+# denit_soil_all with meta data:
+denit_soil_all_meta <- cbind(meta, denit_soil_all)
+
+denit_soil_all_meta$log_denit <- log10(denit_soil_all_meta$Denitrification_rate)
+denit_soil_all_meta$log_EC <- log10(denit_soil_all_meta$EC_uS.cm)
+denit_soil_all_meta$log_moisture <- log10(denit_soil_all_meta$PercentMoisture)
+
+# Normality:
+denit_soil_all_meta %>%
+  shapiro_test(Denitrification_rate)
+  # Not normally distributed
+
+denit_soil_all_meta %>%
+  shapiro_test(log_denit)
+  # Normally distributed!
+
+denit_soil_all_meta %>%
+  shapiro_test(EC_uS.cm)
+  # Not normally distributed
+
+denit_soil_all_meta %>%
+  shapiro_test(log_EC)
+  # Not normally distributed
+
+denit_soil_all_meta %>%
+  shapiro_test(PercentMoisture)
+  # Not normally distributed
+
+denit_soil_all_meta %>%
+  shapiro_test(log_moisture)
+  # Not normally distributed
+
+
+
+  # QQ plot:
+ggqqplot(denit_soil_all_meta, "log_denit")
+
+ggqqplot(denit_soil_all_meta, "log_EC")
+
+ggqqplot(denit_soil_all_meta, "log_moisture")
+```
+
+```{r}
+library(ARTool)
+
+denit_soil_all_meta$Site <- as.factor(denit_soil_all_meta$Site)
+denit_soil_all_meta$Field_or_Buffer <- as.factor(denit_soil_all_meta$Field_or_Buffer)
+
+m.art = art(Denitrification_rate ~ Site*Field_or_Buffer, data = denit_soil_all_meta)
+anova(m.art)
+```
+
+
+```{r plotting}
+# add combined site and field or buffer
+denit_soil_all_meta$Site_field_buff <- paste(denit_soil_all_meta$Site, denit_soil_all_meta$Field_or_Buffer, sep = "_")
+
+denit_soil_all_meta$Site_field_buff <- as.factor(denit_soil_all_meta$Site_field_buff)
+
+# Kruskal-Wallis test on Treatment, and multiple comparisons:
+denit_kruskal<- compare_means(Denitrification_rate~Site_field_buff, denit_soil_all_meta, method = "kruskal.test")
+
+denit_multipleComparisons<- compare_means(Denitrification_rate~Site_field_buff, denit_soil_all_meta, method = "wilcox.test", p.adjust.method = "fdr")
+
+# Adjustments for plotting:
+denit_multipleComparisons <- add_significance(denit_multipleComparisons, p.col = "p.adj", output.col = "p.adj.signif", cutpoints = c(0, 1e-04, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))
+
+# Turn into data frame:
+denit_MultComp.DF <- as.data.frame(denit_multipleComparisons)
+
+# SDCFlig
+SDCFlig_denit <- pSDCFlig(x = denit_soil_all_meta$Denitrification_rate, g = denit_soil_all_meta$Site_field_buff, method = "Monte Carlo", n.mc = 10000)
+SDCFlig_denit
+
+# Add on SDCFlig p-values:
+denit_MultComp.DF$SDCF_p <- c(SDCFlig_denit$p.val)
+
+# Symbols for plotting:
+denit_MultComp.DF <- add_significance(denit_MultComp.DF, p.col = "SDCF_p", output.col = "p.SDCF.signif", cutpoints = c(0, 1e-04, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))
+
+# Letters for plotting
+denit_letters <- data.frame(
+  Site_field_buff = c("HydeCo_buffer", "HydeCo_field", "PittCo_buffer", "PittCo_field"),
+  Letters = c("a", "a", "b", "c")
+)
+
+
+# Export the data frames to a .csv file
+#write.csv(N2O_MultComp.DF, file = "../figures/pub/tables/Kruskal_Treatment/multiple_comparisons/N2O_MultComp.csv", row.names = T)
+
+# Weird 'hide.ns' behavior patch:
+#N2O_MultComp.DF$p[4] <- 1.0
+
+# Plotting:
+plot.denit <- ggplot(denit_soil_all_meta, aes(x=Site_field_buff, y=Denitrification_rate)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_point(size = 2, position = position_jitterdodge()) +
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.text.x = element_text(angle = 45, hjust = 1), panel.border = element_rect(colour = "black",size=1), strip.text = element_text(size = 20), legend.position="right", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "", y = expression(paste("ng N"[2],"O g"^{-1}, " h"^{-1})), title="") +
+  #scale_x_discrete(labels=c("Dry", "Interim", "Wet"))+
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))+
+  #stat_pvalue_manual(data = denit_MultComp.DF, comparisons = list(c("HydeCo_buffer", "HydeCo_field"), c("HydeCo_buffer", "PittCo_buffer"), c("HydeCo_buffer", "PittCo_field"), c("HydeCo_field", "PittCo_buffer"), c("HydeCo_field", "PittCo_field"), c("PittCo_buffer", "PittCo_field")), label = "p.adj.signif", size = 10, vjust = 1, hide.ns = "p", y.position = max(denit_soil_all_meta$Denitrification_rate), step.increase = 0.1)
+  geom_text(data = denit_letters, aes(x = Site_field_buff, y = max(denit_soil_all_meta$Denitrification_rate) + 5000, label = Letters), size = 8)
+
+ 
+plot.denit
+
+ggsave("../figures/denit_boxplot.png", plot=plot.denit, device="png", path=NULL, scale=1, width=9, height=5, dpi=600, limitsize=TRUE, bg="white")
+```
 
 
 # PCoA
-
-```{r wrangling}
-soil.finish_FULL <- soil %>% 
-dplyr::select(-c(g.soil.kcl, no2.no3.mg.l, plant.c.percent, plant.n.percent, plant.dry.mass.g, HM., CEC.))
-
-# soil finish, only finish samples:
-soil.finish_FULL <- soil.finish_FULL %>%
-  filter(time == "finish")
-
-# make chamber row names
-rownames(soil.finish_FULL) <- soil.finish_FULL$chamber
-
-# remove design info and NOx column that has many NAs
-meta.env_FULL <- soil.finish_FULL[, -c(1:5)]
-
-# Add GHG fluxes from final time point, August 11
-meta.env_GHG <- cbind(meta.env_FULL, select_fluxes_combined_w_T0_8.11$f0_CH4, select_fluxes_combined_w_T0_8.11$f0_CO2, select_fluxes_combined_w_T0_8.11$f0_N2O)
-
-colnames(meta.env_GHG)[19:21] <- c("f0_CH4", "f0_CO2", "f0_N2O")
-
-
-# Now ready for new PCoA calculation without interim, then envfit to meta.env_GHG
-```
 
 ```{r Calculate distance matrix and PCoA components without field, end samples only}
 # Bray-Curtis distance matrix:
@@ -446,7 +459,7 @@ explainvar2a # 6%
 sum.eiga # 21.8%
 ```
 
-```{r plot PCoA without field, end samples only}
+```{r PCoA data frames}
 pcoa.groups <- paste(meta_otu$Site, meta_otu$Field_or_Buffer, sep = "_")
 pcoa.points <- data.frame(otu.rel.dist.pcoa$points, group = pcoa.groups)
 
@@ -495,40 +508,39 @@ centroids_points_merged$Site_field_buff <- paste(centroids_points_merged$Site, c
 centroids_points_merged$Site_field_buff <- as.factor(centroids_points_merged$Site_field_buff)
 ```
 
-```{r Wrangle envfit data frame}
-
-```
-
-
-```{r}
+```{r envfit}
 # pcoa points data frame for envfit
 pcoa_DF <- as.data.frame(otu.rel.dist.pcoa$points)
 
 #Run envfit with new Soil data (SSF = Soil Start & Finish):
-fit_denit_SSF <- envfit(pcoa_DF, SoilGHG_StartFinish_Envfit, permutations = 10000, set.seed(42))
-fit_denit_SSF
+fit <- envfit(pcoa_DF, denit_soil_filtered, permutations = 10000, set.seed(42))
+fit
 
-A_denit_SSF <-as.list(fit_denit_SSF$vectors)
-vec_denit_SSF <- as.data.frame(fit_denit_SSF$vectors$arrows*sqrt(fit_denit_SSF$vectors$r)*0.15)
-p_denit_SSF <- as.data.frame(A_denit_SSF$pvals)
-vec_denit_SSF <- cbind(vec_denit_SSF, p_denit_SSF)
-vec_denit_SSF <- subset(vec_denit_SSF, A_denit_SSF$pvals<=0.1) # alpha = 0.1 for EcoSphere paper
+A_fit <-as.list(fit$vectors)
+vec <- as.data.frame(fit$vectors$arrows*sqrt(fit$vectors$r)*1)
+p_fit <- as.data.frame(A_fit$pvals)
+vec$pvals <- A_fit$pvals
+vec <- subset(vec, pvals<=0.05)
 
+vec$labels <- c("%moisture", "EC")
+```
 
+```{r PCoA plot site and field or buffer}
 #Plot using ggplot2
 df <- as.data.frame(centroids_points_merged)
 
-plot_pcoa <- ggplot(df, aes(x=V1, y=V2, shape=Site_field_buff)) + geom_errorbarh(aes(xmax=V1+V1e, xmin=V1-V1e, height=0.003), colour="black") +    
+plot_pcoa <- ggplot(df, aes(x=V1, y=V2, shape=Site_field_buff)) + 
+  geom_errorbarh(aes(xmax=V1+V1e, xmin=V1-V1e, height=0.003), colour="black") +    
   geom_errorbar(aes(ymax=V2+V2e, ymin=V2-V2e, width=0.003), colour="black") +   
   geom_point(aes(shape = Site_field_buff, alpha = centroid_or_sample, size = centroid_or_sample), stroke=2) +  
   theme_bw() +
-  scale_size_manual(values = c(6, 3), name = "Centroid or Sample")+
+  scale_size_manual(values = c(7, 3), name = "Centroid or Sample")+
   scale_alpha_manual(values = c(1, 0.3), name = "Centroid or Sample")+
   #scale_color_manual(values=c("black", "#997700", "#004488"), name="Treatment") +
   scale_shape_manual(values = c(0, 15, 1, 19), name="Site_Buffer") +
   xlab(glue("PCoA 1 ({explainvar1a}%)")) + ylab(glue("PCoA 2 ({explainvar2a}%)")) + 
-  #geom_segment(data=vec_denit_SSF, aes(x=0,xend=V1,y=0,yend=V2), linewidth=1, arrow = arrow(length = unit(0.2, "cm")),colour="black", alpha = 0.4, inherit.aes=F)+ 
- #geom_text(data=vec_denit_SSF, aes(x=V1-0.005, y=V2-0.005), label= expression(paste("CO"[2])), size=4, inherit.aes=F)+
+  geom_segment(data=vec, aes(x=0,xend=V1,y=0,yend=V2), linewidth=1, arrow = arrow(length = unit(0.2, "cm")),colour="black", alpha = 0.6, inherit.aes=F)+ 
+ geom_text(data=vec, aes(x=V1, y=V2+0.03), label= vec$labels, size=4, inherit.aes=F)+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
   theme(panel.background = element_blank()) + 
   theme(axis.title = element_text(size=14), axis.text=element_text(size=14), 
@@ -543,9 +555,82 @@ plot_pcoa <- ggplot(df, aes(x=V1, y=V2, shape=Site_field_buff)) + geom_errorbarh
 
 plot_pcoa
 
-#ggsave("~/Desktop/newDenitPCoa.jpeg", plot = plot2a, device="jpeg", path=NULL, scale=1, height = 7, width = 10, limitsize = TRUE, dpi = 300)
+#ggsave("../figures/pcoa.png", plot = plot_pcoa, device="png", path=NULL, scale=1, height = 5, width = 9, limitsize = TRUE, dpi = 600)
 ```
 
+# GPS locations
+
+```{r wrangling}
+# Step 1: Extract latitude and longitude
+LatLongs <- LatLongs %>%
+  mutate(
+    Latitude = as.numeric(str_extract(LatLong, "[0-9]+\\.[0-9]+(?=¡N)")),
+    Longitude = -as.numeric(str_extract(LatLong, "[0-9]+\\.[0-9]+(?=¡W)"))  # West is negative
+  )
+
+# Step 2: Convert to projected coordinates (UTM Zone 18N)
+# Create an sf object
+LatLongs_sf <- st_as_sf(LatLongs, coords = c("Longitude", "Latitude"), crs = 4326)
+
+# Transform to UTM Zone 18N (EPSG:32618)
+LatLongs_utm <- st_transform(LatLongs_sf, crs = 32618)
+
+# Step 3: Extract Easting and Northing
+coords <- st_coordinates(LatLongs_utm)
+LatLongs <- LatLongs %>%
+  mutate(Easting = coords[,1], Northing = coords[,2])
+
+# Step 4: row names:
+# row names to match PCoA
+# get rid of underscores
+rownames(LatLongs) <- gsub(pattern = "_", replacement = "", x = LatLongs$SampleID)
+
+# This selects and keeps only the first 7 characters of each row name
+rownames(LatLongs) <- substr(rownames(LatLongs), start = 1, stop = 7)
+
+```
+
+# GDM
+
+```{r}
+require("gdm")
+
+
+
+# bioData (bioFormat =1)
+  # site ID column
+otu_rel_for_gdm <- as.data.frame(otu_rel)
+otu_rel_for_gdm$siteColumn <- meta_otu$SampleID
+
+# add siteCol to denit_soil_filtered
+denit_soil_filtered$siteColumn <- otu_rel_for_gdm$siteCol
+
+  # add coordinates
+LatLongs_otu <- LatLongs[rownames(LatLongs) %in% rownames(otu_rel), ]
+
+otu_rel_for_gdm$Easting_m <- LatLongs_otu$Easting
+otu_rel_for_gdm$Northing_m <- LatLongs_otu$Northing
+
+
+site_pair <- formatsitepair(bioData = otu_rel_for_gdm, 1, dist = "bray", abundance = T, siteColumn = "siteColumn", XColumn = "Easting_m", YColumn = "Northing_m", predData = denit_soil_filtered)
+
+gdm1 <- gdm(site_pair, geo = T)
+
+gdm.crossvalidation(site_pair, geo = T)
+
+# partition deviance
+varSet <- vector("list", 1)
+names(varSet) <- "soil_and_denit"
+varSet$soil_and_denit <- colnames(denit_soil_filtered)
+
+partioning <- gdm.partition.deviance(site_pair, varSet, partSpace = T)
+
+variable_importance <- gdm.varImp(site_pair, geo = T)
+
+summary(gdm1)
+
+gdm_plot <- plot(gdm1)
+```
 
 
 # Distance-based partial least squares regression (dbplsr)
