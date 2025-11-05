@@ -38,6 +38,8 @@ require("funrar")
 require("glue")
 require("sf")
 require("NSM3")
+require("gdm")
+require("ARTool")
 ```
 
 ```{r Bioconductor install and load}
@@ -318,7 +320,7 @@ denit_soil_all <- denit_soil_all[,-c(1, 3, 5, 8, 10)]
 denit_soil_filtered <- denit_soil_all[rownames(denit_soil_all) %in% rownames(otu_rel), ]
 ```
 
-```{r}
+```{r soil stat assumptions}
 # denit_soil_all with meta data:
 denit_soil_all_meta <- cbind(meta, denit_soil_all)
 
@@ -351,9 +353,7 @@ denit_soil_all_meta %>%
   shapiro_test(log_moisture)
   # Not normally distributed
 
-
-
-  # QQ plot:
+  # QQ plots:
 ggqqplot(denit_soil_all_meta, "log_denit")
 
 ggqqplot(denit_soil_all_meta, "log_EC")
@@ -361,9 +361,7 @@ ggqqplot(denit_soil_all_meta, "log_EC")
 ggqqplot(denit_soil_all_meta, "log_moisture")
 ```
 
-```{r}
-library(ARTool)
-
+```{r ART ANOVA}
 denit_soil_all_meta$Site <- as.factor(denit_soil_all_meta$Site)
 denit_soil_all_meta$Field_or_Buffer <- as.factor(denit_soil_all_meta$Field_or_Buffer)
 
@@ -435,7 +433,139 @@ plot.denit <- ggplot(denit_soil_all_meta, aes(x=Site_field_buff, y=Denitrificati
  
 plot.denit
 
-ggsave("../figures/denit_boxplot.png", plot=plot.denit, device="png", path=NULL, scale=1, width=9, height=5, dpi=600, limitsize=TRUE, bg="white")
+#ggsave("../figures/denit_boxplot.png", plot=plot.denit, device="png", path=NULL, scale=1, width=9, height=5, dpi=600, limitsize=TRUE, bg="white")
+```
+
+```{r denit site facet plot}
+# Rename factor levels
+denit_soil_all_meta$Site <- factor(denit_soil_all_meta$Site,
+                                   levels = c("HydeCo", "PittCo"),
+                                   labels = c("Hyde County", "Pitt County"))
+# Letters for plotting
+denit_letters.1a <- data.frame(
+  Site = c("Hyde County", "Hyde County", "Pitt County", "Pitt County"),
+  Field_or_Buffer = c("buffer", "field", "buffer", "field"),
+  Letters = c("a", "a", "b", "c")
+)
+
+
+# Plotting:
+plot.denit.1a <- ggplot(denit_soil_all_meta, aes(x=Field_or_Buffer, y=Denitrification_rate)) +
+  facet_wrap(vars(Site))+
+  geom_boxplot(outlier.shape = NA) +
+  geom_point(size = 2, position = position_jitterdodge()) +
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.text.x = element_text(angle = 45, hjust = 1), panel.border = element_rect(colour = "black",size=1), strip.text = element_text(size = 20), legend.position="right", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "", y = expression(paste("ng N"[2],"O g"^{-1}, " h"^{-1})), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))+
+  theme(axis.text.x = element_blank())+
+  theme(axis.ticks.x = element_blank())+
+  geom_text(data = denit_letters.1a, aes(x = Field_or_Buffer, y = max(denit_soil_all_meta$Denitrification_rate) + 5000, label = Letters), size = 8)
+
+ 
+plot.denit.1a
+```
+```{r moisture stats and plot}
+# Kruskal-Wallis test on Treatment, and multiple comparisons:
+moisture_kruskal<- compare_means(PercentMoisture~Site_field_buff, denit_soil_all_meta, method = "kruskal.test")
+
+# Plotting:
+plot.moist.b <- ggplot(denit_soil_all_meta, aes(x=Field_or_Buffer, y=PercentMoisture)) +
+  facet_wrap(vars(Site))+
+  geom_boxplot(outlier.shape = NA) +
+  geom_point(size = 2, position = position_jitterdodge()) +
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.text.x = element_text(angle = 45, hjust = 1), panel.border = element_rect(colour = "black",size=1), strip.text = element_text(size = 20), legend.position="right", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "", y = expression(paste("% soil moisture")), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(axis.text.x = element_blank())+
+  theme(axis.ticks.x = element_blank())+
+  theme(plot.background = element_rect(color=NA))
+
+ 
+plot.moist.b
+```
+
+```{r EC stats and plot}
+# Kruskal-Wallis test on Treatment, and multiple comparisons:
+EC_kruskal<- compare_means(EC_uS.cm~Site_field_buff, denit_soil_all_meta, method = "kruskal.test")
+
+EC_multipleComparisons<- compare_means(EC_uS.cm~Site_field_buff, denit_soil_all_meta, method = "wilcox.test", p.adjust.method = "fdr")
+
+# Adjustments for plotting:
+EC_multipleComparisons <- add_significance(EC_multipleComparisons, p.col = "p.adj", output.col = "p.adj.signif", cutpoints = c(0, 1e-04, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))
+
+# Turn into data frame:
+EC_MultComp.DF <- as.data.frame(EC_multipleComparisons)
+
+# Letters for plotting
+EC_letters <- data.frame(
+  Site_field_buff = c("HydeCo_buffer", "HydeCo_field", "PittCo_buffer", "PittCo_field"),
+  Letters = c("a", "a", "b", "c")
+)
+
+# SDCFlig
+SDCFlig_EC <- pSDCFlig(x = denit_soil_all_meta$EC_uS.cm, g = denit_soil_all_meta$Site_field_buff, method = "Monte Carlo", n.mc = 10000)
+SDCFlig_EC
+
+# Add on SDCFlig p-values:
+EC_MultComp.DF$SDCF_p <- c(SDCFlig_EC$p.val)
+
+# Symbols for plotting:
+EC_MultComp.DF <- add_significance(EC_MultComp.DF, p.col = "SDCF_p", output.col = "p.SDCF.signif", cutpoints = c(0, 1e-04, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))
+
+# Letters for plotting
+EC_letters.1a <- data.frame(
+  Site = c("Hyde County", "Hyde County", "Pitt County", "Pitt County"),
+  Field_or_Buffer = c("buffer", "field", "buffer", "field"),
+  Letters = c("ab", "a", "b", "c")
+)
+
+# Plotting:
+plot.EC.c <- ggplot(denit_soil_all_meta, aes(x=Field_or_Buffer, y=EC_uS.cm)) +
+  facet_wrap(vars(Site))+
+  geom_boxplot(outlier.shape = NA) +
+  geom_point(size = 2, position = position_jitterdodge()) +
+  theme_bw() +
+  #Remove plot grid lines
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  #Set axis title and text properties, tick marks, and labels
+  theme(text=element_text(size=20),axis.title=element_text(size=20,face="bold"),
+          axis.text=element_text(size=20),  
+          axis.title.y=element_text(margin=margin(r=10)),
+          axis.text.x = element_text(angle = 45, hjust = 1), panel.border = element_rect(colour = "black",size=1), strip.text = element_text(size = 20), legend.position="right", legend.title = element_text(size=20), legend.text=element_text(size=20)) + 
+          theme(axis.ticks.length=unit(0.3,"cm")) + 
+          labs(x = "", y = expression(paste("EC (µS cm"^{-1}, ")")), title="") +
+  theme(rect=element_rect(fill="transparent"))+
+  theme(plot.background = element_rect(color=NA))+
+  geom_text(data = EC_letters.1a, aes(x = Field_or_Buffer, y = max(denit_soil_all_meta$EC_uS.cm) + 500, label = Letters), size = 8)
+
+ 
+plot.EC.c
+
+```
+
+```{r}
+denit_moist_EC_3panel <- ggarrange(plot.denit.1a, plot.moist.b, plot.EC.c, ncol = 1, nrow = 3, align = "hv",labels = c("(a)","(b)","(c)"), legend = "none")
+
+denit_moist_EC_3panel
+
+#ggsave("../figures/denit_moist_EC_3panel.png", plot=denit_moist_EC_3panel, device="png", path=NULL, scale=1, width=10, height=12, dpi=600, limitsize=TRUE, bg="white")
 ```
 
 
@@ -593,7 +723,7 @@ rownames(LatLongs) <- substr(rownames(LatLongs), start = 1, stop = 7)
 # GDM
 
 ```{r}
-require("gdm")
+
 
 
 
