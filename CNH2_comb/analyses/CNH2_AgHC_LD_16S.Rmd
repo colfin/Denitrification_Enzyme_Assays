@@ -212,7 +212,7 @@ meta_otu$Field_or_Buffer <- as.factor(meta_otu$Field_or_Buffer)
 
 # PERMANOVA
 
-```{r PERMANOVA with just end samples}
+```{r PERMANOVA}
 # PERMANOVA:
 metaotu.ad <- adonis2(meta_otu[,-c(1:5)] ~ Site * Field_or_Buffer, method = "bray", data = meta_otu, perm=10000, set.seed=42, by = "terms")
 metaotu.ad
@@ -468,7 +468,8 @@ plot.denit.1a <- ggplot(denit_soil_all_meta, aes(x=Field_or_Buffer, y=Denitrific
   theme(plot.background = element_rect(color=NA))+
   theme(axis.text.x = element_blank())+
   theme(axis.ticks.x = element_blank())+
-  geom_text(data = denit_letters.1a, aes(x = Field_or_Buffer, y = max(denit_soil_all_meta$Denitrification_rate) + 5000, label = Letters), size = 8)
+  coord_cartesian(ylim = c(-4, 26000))+
+  geom_text(data = denit_letters.1a, aes(x = Field_or_Buffer, y = max(denit_soil_all_meta$Denitrification_rate) + 4000, label = Letters), size = 8)
 
  
 plot.denit.1a
@@ -553,6 +554,7 @@ plot.EC.c <- ggplot(denit_soil_all_meta, aes(x=Field_or_Buffer, y=EC_uS.cm)) +
           labs(x = "", y = expression(paste("EC (µS cm"^{-1}, ")")), title="") +
   theme(rect=element_rect(fill="transparent"))+
   theme(plot.background = element_rect(color=NA))+
+  coord_cartesian(ylim = c(0, 3200))+
   geom_text(data = EC_letters.1a, aes(x = Field_or_Buffer, y = max(denit_soil_all_meta$EC_uS.cm) + 500, label = Letters), size = 8)
 
  
@@ -723,10 +725,6 @@ rownames(LatLongs) <- substr(rownames(LatLongs), start = 1, stop = 7)
 # GDM
 
 ```{r}
-
-
-
-
 # bioData (bioFormat =1)
   # site ID column
 otu_rel_for_gdm <- as.data.frame(otu_rel)
