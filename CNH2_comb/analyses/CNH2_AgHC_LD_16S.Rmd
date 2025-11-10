@@ -29,8 +29,6 @@ require("reshape2")
 require("ecodist")
 require("ggpubr")
 require("grid")
-#require("multcomp")
-#require("multcompView")
 require("rstatix")
 require("NSM3")
 require("ggpmisc")
@@ -353,12 +351,40 @@ denit_soil_all_meta %>%
   shapiro_test(log_moisture)
   # Not normally distributed
 
+denit_soil_all_meta %>%
+  shapiro_test(N_perc)
+  # Not normally distributed
+
+denit_soil_all_meta %>%
+  shapiro_test(C_perc)
+  # Not normally distributed
+
+denit_soil_all_meta %>%
+  shapiro_test(CN)
+  # Not normally distributed
+
+denit_soil_all_meta %>%
+  shapiro_test(NH4_mg.L.gDM)
+  # Not normally distributed
+
+denit_soil_all_meta %>%
+  shapiro_test(NO3_NO2_mg.L.gDM)
+  # Not normally distributed
+
+denit_soil_all_meta %>%
+  shapiro_test(mean_pH)
+  # Not normally distributed
+
   # QQ plots:
-ggqqplot(denit_soil_all_meta, "log_denit")
+ggqqplot(denit_soil_all_meta, "log_denit") # May be acceptable
 
-ggqqplot(denit_soil_all_meta, "log_EC")
+ggqqplot(denit_soil_all_meta, "log_EC") # Bad, but borderline acceptable
 
-ggqqplot(denit_soil_all_meta, "log_moisture")
+ggqqplot(denit_soil_all_meta, "log_moisture") # no parametric possible
+
+ggqqplot(denit_soil_all_meta, "CN")
+  # Shapiro failed but QQ looks acceptable for parametric stats
+
 ```
 
 ```{r ART ANOVA}
@@ -369,6 +395,9 @@ m.art = art(Denitrification_rate ~ Site*Field_or_Buffer, data = denit_soil_all_m
 anova(m.art)
 ```
 
+# Soil boxplots
+
+## Denit, Moisture, EC 3-panel
 
 ```{r plotting}
 # add combined site and field or buffer
